@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wheel</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    
+    <div class="header">
+        <h1>Selection</h1>
+        <p id="selection">NONE</p>
+    </div>
+
+    <div class="wheel">
+        <canvas id="canvas" width="500" height="500"></canvas>
+        <div class="center-circle" onclick="spin()"></div>
+        <div class="triangle"></div>
+    </div>
+    
+    <div class="inputArea" onchange="createWheel()">
+        <textarea rows="20" cols="30" >
+            cat
+dog
+cow
+duck
+sheep
+goat
+bird
+neko
+chicken</textarea>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

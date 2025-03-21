@@ -1,0 +1,102 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: #333;
+    caret-color: transparent; /* Removes blinking text cursor */
+    color: white;
+    font-family: Arial, sans-serif;
+    max-width: 100%;
+    overflow-x: hidden;
+    /* Center content for recording */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.header {
+    width: 100%;
+    max-width: 390px; /* Typical mobile width */
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+.header h1 {
+    font-size: 24px;
+    text-align: center;
+    margin-bottom: 5px;
+}
+
+.header p {
+    text-align: center;
+    font-size: 18px;
+}
+
+.wheel {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 10px auto;
+    position: relative;
+    width: 300px;  /* Reduced for better mobile view */
+    height: 300px;
+}
+
+
+#canvas {
+    width: 300px;  /* Match wheel size */
+    height: 300px;
+}
+
+.center-circle {
+    width: 60px;   
+    height: 60px;
+    border-radius: 50%;
+    background-color: white;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+    z-index: 2;
+    box-shadow: 0 0 5px rgba(0,0,0,0.3);
+}
+
+.center-circle:focus {
+    outline: none;
+}
+
+.triangle {
+    width: 0px;
+    height: 111px;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 16px solid white;
+    position: absolute;
+    bottom: 10px;  
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1;
+}
+
+
+.inputArea {
+    position: absolute;
+    left: -9999px;
+}
+
+textarea {
+    background-color: rgba(20, 20, 20, 0.2);
+    color: #fff;
+    resize: none;
+    cursor: text;
+}
+
+body.spinning .wheel {
+    cursor: default;
+}
