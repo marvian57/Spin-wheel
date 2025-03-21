@@ -52,6 +52,11 @@ let canvas = document.getElementById('canvas');
 let ctx = canvas.getContext('2d');
 let canvasCenter = canvas.width / 2;
 
+// Sound effects
+const tickSound = new Audio('sounds/tick.mp3');
+tickSound.volume = 0.5; // Lower volume for tick sound
+const selectSound = new Audio('sounds/select.mp3');
+
 // Initialize with default colors
 const defaultColors = [
     '#F44336', '#E91E63', '#9C27B0', '#673AB7', '#3F51B5', '#2196F3', '#03A9F4',
@@ -187,6 +192,79 @@ function createWheel() {
     }
 }
 
+// Redraw wheel with highlighting for the selected segment
+function highlightWinningSegment(winningIndex) {
+    // Get the actual canvas size from CSS
+    const wheelSize = parseInt(getCssVar('--wheel-size')) || 350;
+    canvasCenter = wheelSize / 2;
+    
+    // Clear canvas and prepare for redrawing
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    if (!segments || segments.length === 0) return;
+    
+    // Calculate segment angle
+    let segmentAngle = (2 * Math.PI) / segments.length;
+    
+    // Get text styling from CSS
+    const textColor = getCssVar('--wheel-text-color') || 'white';
+    const font = getCssVar('--wheel-font') || 'bold 14px Arial';
+    
+    // Draw each segment
+    for (let i = 0; i < segments.length; i++) {
+        // Set segment appearance based on whether it's the winner
+        const isWinner = (i === winningIndex);
+        
+        // Draw segment with different styling based on winner status
+        ctx.beginPath();
+        
+        if (isWinner) {
+            // Winner segment - normal color, slightly larger
+            ctx.fillStyle = segColors[i];
+            // Add a subtle glow effect for the winner
+            ctx.shadowColor = 'white';
+            ctx.shadowBlur = 15;
+        } else {
+            // Non-winner segments - add transparency
+            // Create semi-transparent version of the color
+            const baseColor = segColors[i];
+            const r = parseInt(baseColor.slice(1, 3), 16);
+            const g = parseInt(baseColor.slice(3, 5), 16);
+            const b = parseInt(baseColor.slice(5, 7), 16);
+            ctx.fillStyle = `rgba(${r}, ${g}, ${b}, 0.4)`;  // 40% opacity
+            ctx.shadowBlur = 0;
+        }
+        
+        // Draw the segment
+        ctx.moveTo(canvasCenter, canvasCenter);
+        ctx.arc(canvasCenter, canvasCenter, canvasCenter - 10, i * segmentAngle, (i + 1) * segmentAngle);
+        ctx.lineTo(canvasCenter, canvasCenter);
+        ctx.fill();
+        
+        // Reset shadow for text
+        ctx.shadowBlur = 0;
+        
+        // Draw text
+        ctx.save();
+        ctx.translate(canvasCenter, canvasCenter);
+        ctx.rotate(i * segmentAngle + segmentAngle / 2);
+        ctx.textAlign = "right";
+        
+        // Adjust text style based on winner status
+        if (isWinner) {
+            ctx.fillStyle = textColor;
+            ctx.font = "bold " + font; // Make winner text bolder
+        } else {
+            // Dimmer text for non-winners
+            ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
+            ctx.font = font;
+        }
+        
+        ctx.fillText(segments[i], canvasCenter - 20, 5);
+        ctx.restore();
+    }
+}
+
 // Fix the spin function to properly follow the backend selection
 function spin() {
     if (isSpinning || !segments || segments.length === 0) return;
@@ -250,6 +328,9 @@ function spin() {
     canvas.style.transition = `transform ${spinDuration/1000}s cubic-bezier(0.1, 0.7, 0.1, 1)`;
     canvas.style.transform = `rotate(${finalRotation}deg)`;
     
+    // Track last segment for sound effects
+    let lastTrackedIndex = -1;
+    
     // Set up live updates during spin
     const startTime = Date.now();
     const liveUpdateInterval = setInterval(() => {
@@ -271,6 +352,13 @@ function spin() {
             // Show current segment during spin
             if (currentIndex >= 0 && currentIndex < segments.length) {
                 selection.textContent = segments[currentIndex];
+                
+                // Play tick sound when segment changes
+                if (currentIndex !== lastTrackedIndex) {
+                    lastTrackedIndex = currentIndex;
+                    // Use cloneNode to allow overlapping sounds
+                    tickSound.cloneNode(true).play().catch(e => console.log("Sound error:", e));
+                }
             }
         }
     }, 50);
@@ -285,6 +373,15 @@ function spin() {
         
         // FORCE the selection to match the backend winner regardless of visual position
         selection.textContent = winningSegment;
+        
+        // Play selection sound
+        selectSound.play().catch(e => console.log("Sound error:", e));
+        
+        // Redraw wheel with highlighted winning segment
+        // Slight delay to ensure wheel has stopped visually
+        setTimeout(() => {
+            highlightWinningSegment(winningIndex);
+        }, 50);
         
         // Debug logs to confirm final selection
         console.log("Spin completed, final rotation:", finalRotation);
@@ -307,8 +404,8 @@ function spin() {
 
 // Update the selections history display
 function updateSelectionsHistory() {
-
-    };
+    // Implementation left empty in original code
+};
     
 window.onload = function() {
     loadWheelConfig();
@@ -322,4 +419,19 @@ window.onload = function() {
     
     // Update selection display initially
     updateSelectionDisplay();
+    
+    // Preload sounds
+    tickSound.load();
+    selectSound.load();
+    
+    // Handle browser autoplay restrictions
+    document.addEventListener('click', function() {
+        // Create and immediately stop a sound to enable audio
+        const unlockSound = new Audio('sounds/tick.mp3');
+        unlockSound.volume = 0;
+        unlockSound.play().then(() => {
+            unlockSound.pause();
+            unlockSound.currentTime = 0;
+        }).catch(e => console.log("Audio initialization error:", e));
+    }, {once: true});
 };
