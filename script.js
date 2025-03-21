@@ -32,196 +32,294 @@ function easeOutQuart(x) {
     return 1 - Math.pow(1 - x, 4);
 }
 
-// Wait for DOM to be loaded
-window.onload = function() {
-    const canvas = document.getElementById("canvas");
-    const ctx = canvas.getContext("2d");
-    const width = canvas.width;
-    const height = canvas.height;
+// Get CSS variables
+function getCssVar(name) {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
 
-    const centerX = width/2;
-    const centerY = height/2;
-    const radius = width/2;
+// Wheel configuration
+let wheelConfig = null;
+let currentCategoryIndex = 0;
+let selections = [];
 
-    // Create audio element for tick sound
-    const tickSound = new Audio('sound/tick.mp3');
-    let lastSegment = -1; // Track last segment position to detect changes
+// Wheel properties
+let segments = [];
+let segColors = [];
+let isSpinning = false;
+let deg = 0;
+let selection = document.getElementById('selection');
+let canvas = document.getElementById('canvas');
+let ctx = canvas.getContext('2d');
+let canvasCenter = canvas.width / 2;
 
-    let items = document.getElementsByTagName("textarea")[0].value.split("\n");
+// Initialize with default colors
+const defaultColors = [
+    '#F44336', '#E91E63', '#9C27B0', '#673AB7', '#3F51B5', '#2196F3', '#03A9F4',
+    '#00BCD4', '#009688', '#4CAF50', '#8BC34A', '#CDDC39', '#FFEB3B', '#FFC107',
+    '#FF9800', '#FF5722', '#795548', '#9E9E9E', '#607D8B'
+];
 
-    let currentDeg = 0;
-    let step = 360/items.length;
-    let colors = [];
-    let itemDegs = {};
-    let speed = 0;
-    let maxRotation = randomRange(360* 3, 360 * 6);
-    let pause = false;
-    let colorsInitialized = false; // Flag to track if colors have been initialized
-
-    // Initialize colors once
-    if (!colorsInitialized) {
-        for(let i = 0; i < items.length + 1; i++){
-            colors.push(randomColor());
-        }
-        colorsInitialized = true;
+// Load wheel configuration from textarea
+function loadWheelConfig() {
+    try {
+        const configText = document.getElementById('wheel-config').value;
+        wheelConfig = JSON.parse(configText);
+        
+        // Reset to first category
+        currentCategoryIndex = 0;
+        selections = [];
+        
+        // Load first wheel
+        loadCategory(currentCategoryIndex);
+    } catch (error) {
+        alert('Invalid JSON configuration: ' + error.message);
     }
+}
 
-    function createWheel(){
-        items = document.getElementsByTagName("textarea")[0].value.split("\n");
-        step = 360/items.length;
-        
-        // Only generate colors if they don't exist or there's a mismatch in count
-        if (colors.length !== items.length + 1) {
-            colors = [];
-            for(let i = 0; i < items.length + 1; i++){
-                colors.push(randomColor());
-            }
-        }
-        draw();
+// Load a specific category into the wheel
+function loadCategory(index) {
+    if (!wheelConfig || !wheelConfig.categories || index >= wheelConfig.categories.length) {
+        return;
     }
-
-    // Helper function to get the current segment under the pointer (arrow)
-    function getCurrentSegment() {
-        // Normalize angle to [0, 360)
-        const normalizedAngle = (currentDeg % 360 + 360) % 360;
-        
-        // THE TRIANGLE IS AT THE BOTTOM (90 degrees in canvas coordinates)
-        // This formula calculates which segment is at the bottom pointer position
-        const pointerPosition = Math.floor(((90 - normalizedAngle + 360) % 360) / step);
-        
-        return pointerPosition % items.length;
-    }
-
-    function draw() {
-        ctx.clearRect(0, 0, width, height);
-        
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, radius, toRad(0), toRad(360));
-        ctx.fillStyle = `rgb(${33},${33},${33})`;
-        ctx.lineTo(centerX, centerY);
-        ctx.fill();
-
-        let startDeg = currentDeg;
-        itemDegs = {}; // Reset item degrees on each draw
-        
-        for(let i = 0; i < items.length; i++, startDeg += step){
-            let endDeg = startDeg + step;
-
-            color = colors[i];
-            let colorStyle = `rgb(${color.r},${color.g},${color.b})`;
-
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, radius - 2, toRad(startDeg), toRad(endDeg));
-            let colorStyle2 = `rgb(${color.r - 30},${color.g - 30},${color.b - 30})`;
-            ctx.fillStyle = colorStyle2;
-            ctx.lineTo(centerX, centerY);
-            ctx.fill();
-
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, radius - 30, toRad(startDeg), toRad(endDeg));
-            ctx.fillStyle = colorStyle;
-            ctx.lineTo(centerX, centerY);
-            ctx.fill();
-
-            // draw text
-            ctx.save();
-            ctx.translate(centerX, centerY);
-            ctx.rotate(toRad((startDeg + endDeg)/2));
-            ctx.textAlign = "center";
-            if(color.r > 150 || color.g > 150 || color.b > 150){
-                ctx.fillStyle = "#000";
-            }
-            else{
-                ctx.fillStyle = "#fff";
-            }
-            ctx.font = 'bold 24px serif';
-            ctx.fillText(items[i], 130, 10);
-            ctx.restore();
-
-            itemDegs[items[i]] = {
-                "startDeg": startDeg,
-                "endDeg": endDeg
-            };
-        }
-        
-        // Update selection text based on current segment
-        const currentSegment = getCurrentSegment();
-        document.getElementById("selection").textContent = items[currentSegment];
-    }
-
-    // Update the animate function for a smoother, longer deceleration
-    function animate() {
-        if(pause){
-            document.body.classList.remove('spinning');
-            return;
-        }
-        
-        // Use a custom easing curve for smoother, more wheel-like deceleration
-        // This gives a more natural feeling when slowing down
-        const progress = getPercent(currentDeg, maxRotation, 0);
-        speed = easeOutQuart(progress) * 20; // Lower multiplier for longer spin
-        
-        if(speed < 0.01){
-            speed = 0;
-            pause = true;
-            document.body.classList.remove('spinning');
-        }
-        
-        currentDeg += speed;
-        
-        // Check if we've moved to a new segment
-        const currentSegment = getCurrentSegment();
-        if(currentSegment !== lastSegment && speed > 0.1){
-            // Play tick sound when crossing segment boundary
-            tickSound.volume = 0.1; // Lower volume
-            tickSound.cloneNode(true).play().catch(e => console.log("Audio play failed: ", e));
-            lastSegment = currentSegment;
-        }
-        
-        draw();
-        window.requestAnimationFrame(animate);
-    }
-        
-    // In the spin function, increase the number of rotations:
-    window.spin = function(){
-        if(speed != 0){
-            return;
-        }
     
-        document.body.classList.add('spinning');
-        currentDeg = 0;
-        lastSegment = -1; // Reset the last segment tracker
-        
-        createWheel();
-        
-        // Choose a random item for the winner
-        const randomIndex = Math.floor(Math.random() * items.length);
-        const randomItem = items[randomIndex];
-        
-        // Truly random position within the chosen segment
-        // Value between 0 (start of segment) and 1 (end of segment)
-        const randomPosition = Math.random(); // Random position anywhere in the segment
-        
-        // Calculate rotation needed to align the random position with the arrow
-        const segmentStart = randomIndex * step; // Start angle of the chosen segment
-        const offsetWithinSegment = randomPosition * step; // Random offset within the segment
-        const rotationNeeded = (90 - segmentStart - offsetWithinSegment + 360) % 360;
-        
-        // Add extra rotations for a longer spin (~4 seconds total)
-        maxRotation = (360 * 4) + rotationNeeded;
-        
-        pause = false;
-        window.requestAnimationFrame(animate);
-    };
-
-    // Initial draw
+    const category = wheelConfig.categories[index];
+    document.getElementById('category-title').textContent = category.title;
+    segments = category.options;
+    
+    // Reset rotation for new wheel
+    deg = 0;
+    canvas.style.transition = 'none';
+    canvas.style.transform = 'rotate(0deg)';
+    
+    // Generate colors based on number of segments
+    generateColors();
+    
+    // Create the wheel
     createWheel();
-    draw();
     
-    // Hide the textarea visually but keep it functional
-    const inputArea = document.querySelector('.inputArea');
-    if (inputArea) {
-        inputArea.style.position = 'absolute';
-        inputArea.style.left = '-9999px';
+    // Update the selection text to show what's at the pointer initially
+    updateSelectionDisplay();
+}
+
+// Add a function to update the selection display based on current wheel position
+function updateSelectionDisplay() {
+    if (!segments || segments.length === 0) return;
+    
+    const segmentAngle = 360 / segments.length;
+    
+    // Get current wheel position
+    let currentRotation = 0;
+    const currentStyle = window.getComputedStyle(canvas).transform;
+    if (currentStyle && currentStyle !== 'none') {
+        const matrix = new DOMMatrix(currentStyle);
+        currentRotation = Math.round(Math.atan2(matrix.b, matrix.a) * (180/Math.PI));
+        if (currentRotation < 0) currentRotation += 360;
     }
+    
+    // Calculate which segment is at the pointer
+    const normalizedAngle = currentRotation % 360;
+    const relativeAngle = (360 - normalizedAngle + 90) % 360;
+    const currentIndex = Math.floor(relativeAngle / segmentAngle) % segments.length;
+    
+    // Update the selection display
+    if (currentIndex >= 0 && currentIndex < segments.length) {
+        selection.textContent = segments[currentIndex];
+    }
+}
+
+// Move to next category after selection
+function nextCategory() {
+    currentCategoryIndex++;
+    
+    if (currentCategoryIndex < wheelConfig.categories.length) {
+        loadCategory(currentCategoryIndex);
+    } else {
+        // All categories completed - just show the title
+        document.getElementById('category-title').textContent = "Complete";
+        // We're intentionally NOT changing the selection.textContent here
+    }
+}
+
+// Generate colors for the segments
+function generateColors() {
+    segColors = [];
+    for (let i = 0; i < segments.length; i++) {
+        segColors.push(defaultColors[i % defaultColors.length]);
+    }
+}
+
+// Create wheel segments
+function createWheel() {
+    // Get the actual canvas size from CSS
+    const wheelSize = parseInt(getCssVar('--wheel-size')) || 350;
+    
+    // Set canvas dimensions to match CSS
+    canvas.width = wheelSize;
+    canvas.height = wheelSize;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    if (!segments || segments.length === 0) return;
+    
+    canvasCenter = canvas.width / 2;
+    let segmentAngle = (2 * Math.PI) / segments.length;
+    
+    // Get text styling from CSS
+    const textColor = getCssVar('--wheel-text-color') || 'white';
+    const font = getCssVar('--wheel-font') || 'bold 14px Arial';
+    for (let i = 0; i < segments.length; i++) {
+        // Draw segment
+        ctx.beginPath();
+        ctx.fillStyle = segColors[i];
+        ctx.moveTo(canvasCenter, canvasCenter);
+        ctx.arc(canvasCenter, canvasCenter, canvasCenter - 10, i * segmentAngle, (i + 1) * segmentAngle);
+        ctx.lineTo(canvasCenter, canvasCenter);
+        ctx.fill();
+        
+        // Draw text
+        ctx.save();
+        ctx.translate(canvasCenter, canvasCenter);
+        ctx.rotate(i * segmentAngle + segmentAngle / 2);
+        ctx.textAlign = "right";
+        ctx.fillStyle = textColor;
+        ctx.font = font;
+        ctx.fillText(segments[i], canvasCenter - 20, 5);
+        ctx.restore();
+    }
+}
+
+// Fix the spin function to properly follow the backend selection
+function spin() {
+    if (isSpinning || !segments || segments.length === 0) return;
+    
+    isSpinning = true;
+    
+    // 1. First, randomly select which segment we want to land on (this is the BACKEND selection)
+    const winningIndex = Math.floor(Math.random() * segments.length);
+    const winningSegment = segments[winningIndex];
+    
+    console.log("Backend selected winner:", winningSegment, "at index:", winningIndex);
+    
+    // 2. Calculate segment angle size
+    const segmentAngle = 360 / segments.length;
+    
+    // 3. Calculate rotation needed to place the segment at the pointer (90 degrees)
+    // This is the key part - we calculate exactly how much to rotate to place the winning segment at 90 degrees
+    const segmentStart = winningIndex * segmentAngle;
+    const segmentMiddle = segmentStart + (segmentAngle / 2);
+    const rotationToSegment = 90 - segmentMiddle;
+    
+    // Debug the rotation calculation
+    console.log("Segment angle:", segmentAngle);
+    console.log("Segment start:", segmentStart);
+    console.log("Segment middle:", segmentMiddle);
+    console.log("Rotation needed to center segment at pointer:", rotationToSegment);
+    
+    // Get current wheel position
+    let currentRotation = 0;
+    const currentStyle = window.getComputedStyle(canvas).transform;
+    if (currentStyle && currentStyle !== 'none') {
+        const matrix = new DOMMatrix(currentStyle);
+        currentRotation = Math.round(Math.atan2(matrix.b, matrix.a) * (180/Math.PI));
+        if (currentRotation < 0) currentRotation += 360;
+    }
+    
+    // Add extra full rotations (always 3 full rotations for consistent timing)
+    const fullRotations = 3 * 360;
+    
+    // Calculate final rotation - ensure we're taking the shortest path
+    currentRotation = currentRotation % 360;
+    let rotationNeeded;
+    
+    if (rotationToSegment > currentRotation) {
+        rotationNeeded = rotationToSegment - currentRotation;
+    } else {
+        rotationNeeded = 360 - (currentRotation - rotationToSegment);
+    }
+    
+    // Add full rotations to the rotation needed to reach target
+    const finalRotation = deg + rotationNeeded + fullRotations;
+    
+    console.log("Current rotation:", currentRotation);
+    console.log("Rotation needed:", rotationNeeded);
+    console.log("Final rotation to apply:", finalRotation);
+    
+    // Always use exactly 3 seconds for animation
+    const spinDuration = 3000;
+    
+    // We'll use CSS transition for the smooth animation
+    canvas.style.transition = `transform ${spinDuration/1000}s cubic-bezier(0.1, 0.7, 0.1, 1)`;
+    canvas.style.transform = `rotate(${finalRotation}deg)`;
+    
+    // Set up live updates during spin
+    const startTime = Date.now();
+    const liveUpdateInterval = setInterval(() => {
+        // Get current rotation from the transform property
+        const transformValue = window.getComputedStyle(canvas).transform;
+        let currentDeg;
+        
+        // Parse the actual transform value from the matrix
+        if (transformValue && transformValue !== 'none') {
+            const matrix = new DOMMatrix(transformValue);
+            currentDeg = Math.round(Math.atan2(matrix.b, matrix.a) * (180/Math.PI));
+            if (currentDeg < 0) currentDeg += 360;
+            
+            // Calculate which segment is currently at the pointer
+            const normalizedAngle = currentDeg % 360;
+            const relativeAngle = (360 - normalizedAngle + 90) % 360;
+            const currentIndex = Math.floor(relativeAngle / segmentAngle) % segments.length;
+            
+            // Show current segment during spin
+            if (currentIndex >= 0 && currentIndex < segments.length) {
+                selection.textContent = segments[currentIndex];
+            }
+        }
+    }, 50);
+    
+    // When spin completes - with error handling
+    setTimeout(() => {
+        isSpinning = false;
+        clearInterval(liveUpdateInterval);
+        
+        // Store final rotation
+        deg = finalRotation;
+        
+        // FORCE the selection to match the backend winner regardless of visual position
+        selection.textContent = winningSegment;
+        
+        // Debug logs to confirm final selection
+        console.log("Spin completed, final rotation:", finalRotation);
+        console.log("Backend winner (forced):", winningSegment);
+        
+        // Add to selections history with error checking
+        if (currentCategoryIndex < wheelConfig.categories.length) {
+            selections.push({
+                category: wheelConfig.categories[currentCategoryIndex].title,
+                selection: winningSegment
+            });
+        }
+        
+        // Delay before next category
+        setTimeout(() => {
+            nextCategory();
+        }, 1500);
+    }, spinDuration + 100);
+}
+
+// Update the selections history display
+function updateSelectionsHistory() {
+
+    };
+    
+window.onload = function() {
+    loadWheelConfig();
+    
+    // Add event listener to update selection display when canvas is touched/clicked
+    canvas.addEventListener('click', function(e) {
+        if (!isSpinning) {
+            updateSelectionDisplay();
+        }
+    });
+    
+    // Update selection display initially
+    updateSelectionDisplay();
 };

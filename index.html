@@ -9,27 +9,63 @@
 <body>
     
     <div class="header">
-        <h1>Selection</h1>
+        <h1 id="category-title">Selection</h1>
         <p id="selection">NONE</p>
     </div>
 
     <div class="wheel">
-        <canvas id="canvas" width="500" height="500"></canvas>
+        <canvas id="canvas" width="350" height="350"></canvas>
         <div class="center-circle" onclick="spin()"></div>
-        <div class="triangle"></div>
+        <div class="pointer"></div>
     </div>
     
-    <div class="inputArea" onchange="createWheel()">
-        <textarea rows="20" cols="30" >
-            cat
-dog
-cow
-duck
-sheep
-goat
-bird
-neko
-chicken</textarea>
+    <div class="inputArea">
+        <h3>Wheel Configuration (JSON):</h3>
+        <textarea id="wheel-config" rows="15" cols="30">
+{
+  "categories": [
+    {
+      "title": "What is your race?",
+      "options": [
+        "Humans",
+        "Skypeans",
+        "Fishmen",
+        "Giants",
+        "Merfolk",
+        "Mink Tribe",
+        "Long Arm",
+        "Long Leg",
+        "Three Eye",
+        "Dwarves",
+        "Snakeneck",
+        "Kinkobito",
+        "Lunarians"
+      ]
+    },
+    {
+      "title": "How old are you?",
+      "options": [
+        "12-18",
+        "18-25",
+        "25-30",
+        "30-60",
+        "60-80"
+      ]
+    },
+    {
+      "title": "What are you?",
+      "options": [
+        "Marine",
+        "Pirate",
+        "Revolutionary",
+        "Bounty Hunter",
+        "Civilian"
+      ]
+    }
+  ]
+}
+        </textarea>
+        <button onclick="loadWheelConfig()">Load Configuration</button>
     </div>
     <script src="script.js"></script>
 </body>
