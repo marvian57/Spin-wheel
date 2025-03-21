@@ -108,8 +108,8 @@ canvas {
 /* Update the center circle */
 .center-circle {
     position: absolute;
-    width: 40px;
-    height: 40px;
+    width: 50px;
+    height: 50px;
     background-color: white;
     border-radius: 50%;
     top: 50%;
@@ -192,6 +192,101 @@ h3 {
 
 body.spinning .wheel {
     cursor: default;
+}
+
+/* Hamburger Menu */
+.hamburger-menu {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    cursor: move;
+    background: #333;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.hamburger-icon {
+    width: 30px;
+    height: 25px;
+    position: relative;
+    cursor: pointer;
+}
+
+.hamburger-icon span {
+    display: block;
+    position: absolute;
+    height: 3px;
+    width: 100%;
+    background: white;
+    border-radius: 3px;
+    transition: 0.25s ease-in-out;
+}
+
+.hamburger-icon span:nth-child(1) { top: 0px; }
+.hamburger-icon span:nth-child(2) { top: 10px; }
+.hamburger-icon span:nth-child(3) { top: 20px; }
+
+/* Settings Panel */
+.settings-panel {
+    display: none; /* Start hidden */
+    position: fixed;
+    top: 70px;
+    right: 20px;
+    width: 280px;
+    background: rgba(0, 0, 0, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 15px;
+    color: white;
+    z-index: 1000;
+}
+
+.settings-panel.active {
+    display: block;
+}
+
+.selection-item {
+    margin: 10px 0;
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+/* Show panel when hamburger is active */
+.hamburger-menu.active + .settings-panel {
+    display: block;
+}
+
+.stat-entry {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 8px 0;
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+.stat-label {
+    color: #ffd700;
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+.stat-value {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    width: 120px;
+}
+
+.stat-value:focus {
+    outline: none;
+    border-color: #ffd700;
+    background: rgba(0, 0, 0, 0.5);
 }
 
 /* Mobile optimization */

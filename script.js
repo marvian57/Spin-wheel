@@ -64,6 +64,29 @@ const defaultColors = [
     '#FF9800', '#FF5722', '#795548', '#9E9E9E', '#607D8B'
 ];
 
+// Add these variables at the top of your script
+let isDragging = false;
+let currentX;
+let currentY;
+let initialX;
+let initialY;
+let xOffset = 0;
+let yOffset = 0;
+
+// Add these variables at the top with your other globals
+let completedCategories = new Set();
+
+// Add this configuration to define which categories are character stats
+const CHARACTER_STATS = [
+    'What is your race?',
+    'How old are you?',
+    'Birth Location',
+    'Occupation',
+    'Haki Type',
+    'Devil Fruit',
+    'What are you?' // Added this category
+];
+
 // Load wheel configuration from textarea
 function loadWheelConfig() {
     try {
@@ -72,12 +95,16 @@ function loadWheelConfig() {
         
         // Reset to first category
         currentCategoryIndex = 0;
-        selections = [];
-        
-        // Load first wheel
         loadCategory(currentCategoryIndex);
+        
+        // Load any saved selections
+        loadSavedSelections();
+        
+        // Update the wheel display
+        createWheel();
+        updateSelectionDisplay();
     } catch (error) {
-        alert('Invalid JSON configuration: ' + error.message);
+        console.error("Error loading wheel configuration:", error);
     }
 }
 
@@ -88,6 +115,20 @@ function loadCategory(index) {
     }
     
     const category = wheelConfig.categories[index];
+    
+    // Skip if this category is already completed
+    if (completedCategories.has(category.title)) {
+        currentCategoryIndex++;
+        if (currentCategoryIndex < wheelConfig.categories.length) {
+            loadCategory(currentCategoryIndex);
+        } else {
+            document.getElementById('category-title').textContent = "Complete";
+            wheelProcessing = true;
+            disableSpinButton(true);
+        }
+        return;
+    }
+    
     document.getElementById('category-title').textContent = category.title;
     segments = category.options;
     
@@ -193,8 +234,8 @@ function createWheel() {
     
     // Get text styling from CSS
     const textColor = getCssVar('--wheel-text-color') || 'white';
-    let fontSizePx = parseInt(getCssVar('--wheel-font-size')) || 12;
-    let font = `bold ${fontSizePx}px Arial`;
+    let fontSizePx = parseInt(getCssVar('--wheel-font-size')) || 10;
+    let font = `bold ${fontSizePx}px monospace`;
     
     // Apply anti-aliasing
     ctx.textBaseline = 'middle';
@@ -269,8 +310,8 @@ function highlightWinningSegment(winningIndex) {
     
     // Get text styling from CSS
     const textColor = getCssVar('--wheel-text-color') || 'white';
-    let fontSizePx = parseInt(getCssVar('--wheel-font-size')) || 12;
-    let font = `bold ${fontSizePx}px Arial`;
+    let fontSizePx = parseInt(getCssVar('--wheel-font-size')) || 10;
+    let font = `bold ${fontSizePx}px monospace`;
     
     // Apply anti-aliasing
     ctx.textBaseline = 'middle';
@@ -470,6 +511,12 @@ function spin() {
             });
         }
         
+        // Add to selections history
+        if (currentCategoryIndex < wheelConfig.categories.length) {
+            const category = wheelConfig.categories[currentCategoryIndex].title;
+            updateSelections(category, winningSegment);
+        }
+        
         // Delay before next category
         setTimeout(() => {
             nextCategory();
@@ -488,8 +535,23 @@ function updateSelectionsHistory() {
     // Implementation left empty in original code
 };
     
-// Update the wheel size calculation in window.onload
+// Add this at the start of your window.onload function
 window.onload = function() {
+    // Clear all saved data
+    localStorage.clear();
+    
+    // Reset global variables
+    currentCategoryIndex = 0;
+    selections = [];
+    completedCategories = new Set();
+    wheelProcessing = false;
+    isSpinning = false;
+    deg = 0;
+    
+    // Load fresh wheel configuration
+    loadWheelConfig();
+    createWheel();
+    
     // Set responsive wheel size based on screen size - optimized for mobile
     const viewportWidth = Math.min(window.innerWidth, window.innerHeight);
     const optimalSize = Math.min(300, viewportWidth * 0.7); // 70% of viewport or 300px, whichever is smaller
@@ -499,6 +561,7 @@ window.onload = function() {
     
     // Rest of the onload code remains the same...
     loadWheelConfig();
+    loadSavedSelections(); // Load saved selections after config
     
     // Add event listener to update selection display when canvas is touched/clicked
     canvas.addEventListener('click', function(e) {
@@ -563,3 +626,172 @@ window.addEventListener('resize', function() {
     document.documentElement.style.setProperty('--wheel-size', optimalSize + 'px');
     createWheel(); // Redraw the wheel at new size
 });
+
+// Add this after your existing initialization code
+document.addEventListener('DOMContentLoaded', function() {
+    const hamburger = document.getElementById('hamburger');
+    const settingsPanel = document.getElementById('settings-panel');
+    
+    // Toggle settings panel
+    hamburger.addEventListener('click', function(e) {
+        if (!isDragging) {
+            this.classList.toggle('active');
+            settingsPanel.style.display = settingsPanel.style.display === 'none' ? 'block' : 'none';
+        }
+    });
+
+    // Make hamburger draggable
+    hamburger.addEventListener('mousedown', dragStart);
+    document.addEventListener('mousemove', drag);
+    document.addEventListener('mouseup', dragEnd);
+});
+
+// Dragging functions
+function dragStart(e) {
+    initialX = e.clientX - xOffset;
+    initialY = e.clientY - yOffset;
+
+    if (e.target === document.getElementById('hamburger')) {
+        isDragging = true;
+    }
+}
+
+function drag(e) {
+    if (isDragging) {
+        e.preventDefault();
+        currentX = e.clientX - initialX;
+        currentY = e.clientY - initialY;
+        xOffset = currentX;
+        yOffset = currentY;
+        
+        const hamburger = document.getElementById('hamburger');
+        const panel = document.getElementById('settings-panel');
+        
+        hamburger.style.transform = `translate(${currentX}px, ${currentY}px)`;
+        if (panel.style.display === 'block') {
+            panel.style.transform = `translate(${currentX}px, ${currentY}px)`;
+        }
+    }
+}
+
+function dragEnd() {
+    initialX = currentX;
+    initialY = currentY;
+    isDragging = false;
+}
+
+// Update the updateSelections function to only track character stats
+function updateSelections(category, selection) {
+    // Only process if it's a character stat
+    if (!CHARACTER_STATS.includes(category)) return;
+
+    const selectionsList = document.getElementById('selections-list');
+    const existingItem = Array.from(selectionsList.children).find(
+        item => item.dataset.category === category
+    );
+
+    if (existingItem) {
+        existingItem.querySelector('input').value = selection;
+    } else {
+        const item = document.createElement('div');
+        item.className = 'selection-item';
+        item.dataset.category = category;
+        item.innerHTML = `
+            <div class="stat-entry">
+                <span class="stat-label">${category}:</span>
+                <input type="text" 
+                       value="${selection}" 
+                       onchange="updateCharacterStat('${category}', this.value)"
+                       class="stat-value">
+            </div>
+        `;
+        selectionsList.appendChild(item);
+    }
+
+    // Mark this category as completed
+    completedCategories.add(category);
+    saveToLocalStorage();
+}
+
+// Add this function to save selections
+function saveToLocalStorage() {
+    const selectionsList = document.getElementById('selections-list');
+    const savedData = {
+        selections: Array.from(selectionsList.children).map(item => ({
+            category: item.dataset.category,
+            selection: item.querySelector('input').value
+        })),
+        completedCategories: Array.from(completedCategories)
+    };
+    
+    localStorage.setItem('wheelSelections', JSON.stringify(savedData));
+}
+
+// Add this function to load saved selections
+function loadSavedSelections() {
+    const saved = localStorage.getItem('wheelSelections');
+    if (saved) {
+        const savedData = JSON.parse(saved);
+        completedCategories = new Set(savedData.completedCategories || []);
+        
+        // Clear existing selections display
+        const selectionsList = document.getElementById('selections-list');
+        selectionsList.innerHTML = '';
+        
+        // Restore all saved selections
+        savedData.selections.forEach(item => {
+            updateSelections(item.category, item.selection);
+        });
+        
+        // Skip to first uncompleted category
+        while (currentCategoryIndex < wheelConfig.categories.length && 
+               completedCategories.has(wheelConfig.categories[currentCategoryIndex].title)) {
+            currentCategoryIndex++;
+        }
+        
+        if (currentCategoryIndex < wheelConfig.categories.length) {
+            loadCategory(currentCategoryIndex);
+        } else {
+            document.getElementById('category-title').textContent = "Complete";
+            wheelProcessing = true;
+            disableSpinButton(true);
+        }
+    }
+}
+
+// Add function to update character stats
+function updateCharacterStat(category, newValue) {
+    if (!CHARACTER_STATS.includes(category)) return;
+    
+    // Update in selections array
+    const selectionIndex = selections.findIndex(s => s.category === category);
+    if (selectionIndex >= 0) {
+        selections[selectionIndex].selection = newValue;
+    } else {
+        selections.push({
+            category: category,
+            selection: newValue
+        });
+    }
+
+    // Mark category as completed
+    completedCategories.add(category);
+    
+    // If this is the current category, move to next
+    if (wheelConfig.categories[currentCategoryIndex]?.title === category) {
+        nextCategory();
+    }
+
+    // Save to localStorage
+    saveToLocalStorage();
+    
+    // Skip to next uncompleted category if needed
+    while (currentCategoryIndex < wheelConfig.categories.length && 
+           completedCategories.has(wheelConfig.categories[currentCategoryIndex].title)) {
+        currentCategoryIndex++;
+    }
+    
+    if (currentCategoryIndex < wheelConfig.categories.length) {
+        loadCategory(currentCategoryIndex);
+    }
+}
