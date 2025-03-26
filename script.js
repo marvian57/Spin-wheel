@@ -271,7 +271,7 @@ function loadWheelConfig() {
     }
 }
 
-// Simple fix for conditional categories
+// Replace your existing loadCategory function with this corrected version
 function loadCategory(index) {
     if (!wheelConfig || !wheelConfig.categories || index >= wheelConfig.categories.length) {
         return;
@@ -285,6 +285,8 @@ function loadCategory(index) {
         const dependsOn = category.conditional.category;
         const requiredValue = category.conditional.value;
         
+        console.log(`This category depends on "${dependsOn}" being "${requiredValue}"`);
+        
         // Find the dependency's statKey
         let dependsOnStatKey = null;
         for (const cat of wheelConfig.categories) {
@@ -294,15 +296,15 @@ function loadCategory(index) {
             }
         }
         
-        // Get the value from characterStats
+        // Get the actual value from characterStats
         const actualValue = characterStats[dependsOnStatKey];
         
-        // Debug log
-        console.log(`Checking condition: ${dependsOn} should be "${requiredValue}", actual value is "${actualValue}"`);
+        console.log(`Dependency check: ${dependsOn} (${dependsOnStatKey}) value = "${actualValue}"`);
+        console.log(`Required value = "${requiredValue}"`);
         
-        // Simple string comparison, ensuring both are strings
+        // Compare as strings (fixes comparison issues with Yes/No)
         if (String(actualValue) !== String(requiredValue)) {
-            console.log("Condition NOT met, skipping to next category");
+            console.log(`❌ Condition NOT met for ${category.title}, skipping to next category`);
             currentCategoryIndex++;
             if (currentCategoryIndex < wheelConfig.categories.length) {
                 loadCategory(currentCategoryIndex);
@@ -312,18 +314,7 @@ function loadCategory(index) {
             return;
         }
         
-        console.log("Condition met, showing category");
-    }
-    
-    // Skip if already completed
-    if (completedCategories.has(category.title)) {
-        currentCategoryIndex++;
-        if (currentCategoryIndex < wheelConfig.categories.length) {
-            loadCategory(currentCategoryIndex);
-        } else {
-            document.getElementById('category-title').textContent = "Complete";
-        }
-        return;
+        console.log(`✅ Condition MET for ${category.title}, showing this category`);
     }
     
     // Load the category
@@ -984,10 +975,8 @@ function dragEnd() {
     isDragging = false;
 }
 
-// Update the updateSelections function to properly handle conditionals
+// Fix the updateSelections function to ensure values are stored as strings
 function updateSelections(category, selection) {
-    if (!CHARACTER_STATS.includes(category)) return;
-
     // Find the statKey for this category
     let statKey = null;
     for (const cat of wheelConfig.categories) {
@@ -999,15 +988,15 @@ function updateSelections(category, selection) {
 
     // Update the character stats directly
     if (statKey) {
-        // Store the EXACT selection value, not a transformed version
-        characterStats[statKey] = selection;
-        console.log(`Updated character stat ${statKey} to "${selection}"`);
+        // Always store as string to fix comparison issues
+        characterStats[statKey] = String(selection);
+        console.log(`Updated character stat: ${statKey} = "${selection}"`);
     }
     
-    // Debug to verify correct updates
-    console.log("Character stats after update:", JSON.stringify(characterStats));
+    // Debug the current character stats
+    console.log("Current character stats:", JSON.stringify(characterStats));
 
-    // Update UI display as before
+    // Update UI display
     const selectionsList = document.getElementById('selections-list');
     const existingItem = Array.from(selectionsList.children).find(
         item => item.dataset.category === category
@@ -1033,10 +1022,9 @@ function updateSelections(category, selection) {
 
     // Mark category as completed
     completedCategories.add(category);
+    
+    // Save to localStorage
     saveToLocalStorage();
-
-    // Update power calculation after stats change
-    updatePowerDisplay();
 }
 
 // Add this function to save selections
