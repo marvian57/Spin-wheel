@@ -1137,6 +1137,9 @@ function updateCharacterStat(category, newValue) {
             // If race is not human, automatically set Will of D to No
             characterStats.willOfD = "No";
             completedCategories.add("Do you have the Will of D?");
+            
+            // Call the update function to reflect this in UI
+            updateWillOfDDisplay("No");
         }
     }
 
@@ -1467,3 +1470,20 @@ function adminJumpToCategory(index) {
     }
 }
 
+// Add this simple function to update Will of D display
+function updateWillOfDDisplay(value) {
+    const willOfDItem = Array.from(document.getElementById('selections-list').children).find(
+        item => item.dataset.category === "Do you have the Will of D?"
+    );
+    
+    if (willOfDItem) {
+        const selectElement = willOfDItem.querySelector('select');
+        if (selectElement) {
+            // Set value
+            selectElement.value = value;
+            
+            // Disable if non-human
+            selectElement.disabled = (characterStats.race !== "Humans");
+        }
+    }
+}
