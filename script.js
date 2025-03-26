@@ -87,6 +87,169 @@ const CHARACTER_STATS = [
     'What are you?' // Added this category
 ];
 
+// Character stats and power calculation
+const characterStats = {
+    race: null,
+    willOfD: false,
+    birthplace: null,
+    occupation: null,
+    hasHaki: false,
+    hakiType: null,
+    hakiLevel: 0,
+    hasDevilFruit: false,
+    devilFruit: null,
+    devilFruitMastery: 0,
+    fightingStyle: null,
+    fightingIQ: null,
+    combatExperience: 0,
+    age: null,
+    power: 0
+};
+
+// Reference tables for power calculations
+const powerValues = {
+    race: {
+        "Humans": 10,
+        "Skypeans": 15,
+        "Fishmen": 25,
+        "Giants": 40,
+        "Merfolk": 15,
+        "Mink Tribe": 30,
+        "Long Arm": 15,
+        "Long Leg": 15,
+        "Three Eye": 35,
+        "Dwarves": 10,
+        "Snakeneck": 15,
+        "Kinkobito": 15,
+        "Lunarians": 50
+    },
+    hakiType: {
+        "Observation Haki": 30,
+        "Armament Haki": 35,
+        "Conqueror's Haki": 50,
+        "Observation & Armament": 65,
+        "Observation & Conqueror's": 80,
+        "Armament & Conqueror's": 85,
+        "All Three Types": 100
+    },
+    devilFruit: {
+        "Paramecia - Gomu Gomu": 40,
+        "Paramecia - Bara Bara": 30,
+        "Paramecia - Doru Doru": 25,
+        "Paramecia - Mane Mane": 20,
+        "Paramecia - Hana Hana": 35,
+        "Paramecia - Ope Ope": 70,
+        "Logia - Mera Mera": 60,
+        "Logia - Moku Moku": 50,
+        "Logia - Suna Suna": 55,
+        "Logia - Goro Goro": 75,
+        "Logia - Hie Hie": 65,
+        "Logia - Yami Yami": 80,
+        "Zoan - Ushi Ushi": 30,
+        "Zoan - Tori Tori": 35,
+        "Zoan - Zou Zou": 40,
+        "Mythical Zoan - Phoenix": 85,
+        "Ancient Zoan - T-Rex": 70
+    },
+    fightingStyle: {
+        "Haki Combat": 50,
+        "Rokushiki": 45,
+        "Three Sword Style": 60,
+        "Fish-Man Karate": 55,
+        "Black Leg Style": 50,
+        "Swordsmanship": 45,
+        "Dragon Claw": 55,
+        "Usopp Tactics": 30,
+        "Hand-to-Hand Combat": 40,
+        "Marksmanship": 35,
+        "Weapon Specialist": 40
+    },
+    fightingIQ: {
+        "None": 0,
+        "Low": 20,
+        "Medium": 40,
+        "High": 60,
+        "Mastered": 80,
+        "Supreme Master": 90,
+        "Sliver of Truth": 100
+    },
+    occupation: {
+        "Pirate": 15,
+        "Marine": 15,
+        "Revolutionary Army": 20,
+        "World Government": 15,
+        "Civilian": 0,
+        "Noble": 5
+    }
+};
+
+// Calculate power based on character stats
+function calculatePower() {
+    // Get stats values for calculation
+    const race = characterStats.race;
+    const hakiType = characterStats.hakiType;
+    const hasDevilFruit = characterStats.hasDevilFruit === "Yes";
+    const devilFruit = characterStats.devilFruit;
+    const fightingStyle = characterStats.fightingStyle;
+    const fightingIQ = characterStats.fightingIQ;
+    const occupation = characterStats.occupation;
+    const willOfD = characterStats.willOfD === "Yes";
+    
+    // Base values
+    let hakiValue = 0;
+    let devilFruitValue = 0;
+    let fightingStyleValue = 0;
+    let fightingIQValue = 0;
+    
+    // Apply stat values
+    if (hakiType && characterStats.hasHaki === "Yes") {
+        hakiValue = powerValues.hakiType[hakiType] || 0;
+    }
+    
+    if (hasDevilFruit && devilFruit) {
+        devilFruitValue = powerValues.devilFruit[devilFruit] || 0;
+    }
+    
+    if (fightingStyle) {
+        fightingStyleValue = powerValues.fightingStyle[fightingStyle] || 0;
+    }
+    
+    if (fightingIQ) {
+        fightingIQValue = powerValues.fightingIQ[fightingIQ] || 0;
+    }
+    
+    // Base race value
+    let raceValue = powerValues.race[race] || 0;
+    
+    // Will of D bonus for humans
+    if (willOfD) {
+        raceValue += 25;
+    }
+    
+    // Occupation bonus
+    let occupationValue = powerValues.occupation[occupation] || 0;
+    
+    // Apply your formula
+    // P = 1000 * (0.4 * 1.2 * (H/100)^1.5 + 0.3 * (70/100)^1.3 + 0.2 * (60/100)^1.1 + 0.1 * (50/100)) + 250
+    const hakiTierMultiplier = 1.2;
+    const combatExperience = 70; // Could be based on age
+    const devilFruitMasteryBonus = hasDevilFruit ? 250 : 0;
+    
+    let power = 1000 * (
+        0.4 * hakiTierMultiplier * Math.pow(hakiValue/100, 1.5) +
+        0.3 * Math.pow(combatExperience/100, 1.3) +
+        0.2 * Math.pow(devilFruitValue/100, 1.1) +
+        0.1 * Math.pow(fightingStyleValue/100, 1)
+    ) + devilFruitMasteryBonus;
+    
+    // Additional factors
+    power += raceValue * 10;
+    power += fightingIQValue * 5;
+    power += occupationValue * 10;
+    
+    return Math.round(power);
+}
+
 // Load wheel configuration from textarea
 function loadWheelConfig() {
     try {
@@ -108,7 +271,7 @@ function loadWheelConfig() {
     }
 }
 
-// Load a specific category into the wheel
+// Update loadCategory to handle conditional categories
 function loadCategory(index) {
     if (!wheelConfig || !wheelConfig.categories || index >= wheelConfig.categories.length) {
         return;
@@ -116,35 +279,62 @@ function loadCategory(index) {
     
     const category = wheelConfig.categories[index];
     
-    // Skip if this category is already completed
+    // Check if this is a conditional category
+    if (category.conditional) {
+        const dependsOn = category.conditional.category;
+        const requiredValue = category.conditional.value;
+        
+        // Find the relevant stat value
+        let actualValue = null;
+        const statItems = document.querySelectorAll('.selection-item');
+        for (const item of statItems) {
+            if (item.dataset.category === dependsOn) {
+                actualValue = item.querySelector('input').value;
+                break;
+            }
+        }
+        
+        // Skip this category if condition not met
+        if (actualValue !== requiredValue) {
+            currentCategoryIndex++;
+            if (currentCategoryIndex < wheelConfig.categories.length) {
+                loadCategory(currentCategoryIndex);
+            } else {
+                finishCharacterCreation();
+            }
+            return;
+        }
+    }
+    
+    // Skip if already completed
     if (completedCategories.has(category.title)) {
         currentCategoryIndex++;
         if (currentCategoryIndex < wheelConfig.categories.length) {
             loadCategory(currentCategoryIndex);
         } else {
-            document.getElementById('category-title').textContent = "Complete";
-            wheelProcessing = true;
-            disableSpinButton(true);
+            finishCharacterCreation();
         }
         return;
     }
     
+    // Load the category
     document.getElementById('category-title').textContent = category.title;
     segments = category.options;
     
-    // Reset rotation for new wheel
-    deg = 0;
-    canvas.style.transition = 'none';
-    canvas.style.transform = 'rotate(0deg)';
-    
-    // Generate colors based on number of segments
+    // Generate colors
     generateColors();
     
-    // Create the wheel
+    // Create wheel
     createWheel();
     
-    // Update the selection text to show what's at the pointer initially
-    updateSelectionDisplay();
+    // Update the selection display to show the current segment at the pointer
+    // This is the key addition:
+    setTimeout(() => updateSelectionDisplay(), 10);
+    
+    // Enable spin button if needed
+    if (!wheelProcessing) {
+        disableSpinButton(false);
+    }
 }
 
 // Add a function to update the selection display based on current wheel position
@@ -794,4 +984,64 @@ function updateCharacterStat(category, newValue) {
     if (currentCategoryIndex < wheelConfig.categories.length) {
         loadCategory(currentCategoryIndex);
     }
+}
+
+// Add special age animation
+function spinWithAnimation() {
+    const category = wheelConfig.categories[currentCategoryIndex];
+    
+    if (category.animation === "random" && category.title === "How old are you?") {
+        // Simulate random age selection with animation
+        const options = category.options;
+        let counter = 0;
+        const totalIterations = 20; // How many flashes
+        const interval = setInterval(() => {
+            const randomIndex = Math.floor(Math.random() * options.length);
+            selection.textContent = options[randomIndex];
+            counter++;
+            
+            if (counter >= totalIterations) {
+                clearInterval(interval);
+                // Proceed with normal spin
+                spin();
+            }
+        }, 100);
+    } else {
+        // Regular spin
+        spin();
+    }
+}
+
+// Add power display to stats panel
+function updatePowerDisplay() {
+    const power = characterStats.power;
+    const powerLevel = getPowerTier(power);
+    
+    // Find or create power display
+    let powerDisplay = document.getElementById('power-display');
+    if (!powerDisplay) {
+        powerDisplay = document.createElement('div');
+        powerDisplay.id = 'power-display';
+        powerDisplay.className = 'power-display';
+        document.getElementById('settings-panel').appendChild(powerDisplay);
+    }
+    
+    powerDisplay.innerHTML = `
+        <h3>Power Level: ${power}</h3>
+        <div class="power-meter">
+            <div class="power-fill" style="width: ${Math.min(100, power/30)}%"></div>
+        </div>
+        <p>Tier: ${powerLevel}</p>
+    `;
+}
+
+// Determine character tier based on power
+function getPowerTier(power) {
+    if (power < 500) return "Civilian";
+    if (power < 1000) return "Fighter";
+    if (power < 2000) return "Officer";
+    if (power < 3000) return "Vice Admiral / Commander";
+    if (power < 4000) return "Admiral / Emperor Commander";
+    if (power < 5000) return "Top Tier";
+    return "Legendary";
 }
