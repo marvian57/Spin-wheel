@@ -278,24 +278,39 @@ function loadCategory(index) {
     }
     
     const category = wheelConfig.categories[index];
+    console.log(`Loading category: ${category.title}`);
     
     // Check if this is a conditional category
     if (category.conditional) {
         const dependsOn = category.conditional.category;
         const requiredValue = category.conditional.value;
         
-        // Find the relevant stat value
-        let actualValue = null;
-        const statItems = document.querySelectorAll('.selection-item');
-        for (const item of statItems) {
-            if (item.dataset.category === dependsOn) {
-                actualValue = item.querySelector('input').value;
+        console.log(`Checking condition for ${category.title}: ${dependsOn} should be "${requiredValue}"`);
+        console.log(`Current character stats: ${JSON.stringify(characterStats)}`);
+        
+        // Find the dependency statKey
+        let dependsOnStatKey = null;
+        for (const cat of wheelConfig.categories) {
+            if (cat.title === dependsOn) {
+                dependsOnStatKey = cat.statKey;
                 break;
             }
         }
         
+        // Get the actual value from character stats, ensuring exact string comparison
+        let actualValue = null;
+        if (dependsOnStatKey) {
+            actualValue = characterStats[dependsOnStatKey];
+            console.log(`Found statKey ${dependsOnStatKey} with value "${actualValue}"`);
+        }
+        
+        // IMPORTANT: Use === for exact string comparison
+        const conditionMet = actualValue === requiredValue;
+        console.log(`Condition met? ${conditionMet} (${actualValue} === ${requiredValue})`);
+        
         // Skip this category if condition not met
-        if (actualValue !== requiredValue) {
+        if (!conditionMet) {
+            console.log(`Condition not met, skipping to next category`);
             currentCategoryIndex++;
             if (currentCategoryIndex < wheelConfig.categories.length) {
                 loadCategory(currentCategoryIndex);
@@ -303,6 +318,8 @@ function loadCategory(index) {
                 finishCharacterCreation();
             }
             return;
+        } else {
+            console.log(`Condition met, showing category ${category.title}`);
         }
     }
     
@@ -568,6 +585,40 @@ function disableSpinButton(disable) {
 // More aggressive button disabling, using a global variable
 let wheelProcessing = false;
 
+// Add this weights configuration
+const optionWeights = {
+    "Do you have haki?": {
+        base: { "Yes": 40, "No": 60 }, // Base chance: 40% Yes, 60% No
+        modifiers: {
+            race: {
+                "Humans": { "Yes": 10, "No": -10 }, // Humans: 50% Yes, 50% No
+                "Lunarians": { "Yes": 20, "No": -20 }, // Lunarians: 60% Yes, 40% No
+                "Giants": { "Yes": 15, "No": -15 } // Giants: 55% Yes, 45% No
+            },
+            occupation: {
+                "Marine": { "Yes": 15, "No": -15 }, // Marines: 55% Yes, 45% No
+                "Pirate": { "Yes": 10, "No": -10 },
+                "Revolutionary Army": { "Yes": 20, "No": -20 },
+                "Civilian": { "Yes": -20, "No": 20 } // Civilians: 20% Yes, 80% No
+            }
+        }
+    },
+    "Do you have a devil fruit?": {
+        base: { "Yes": 30, "No": 70 }, // Base chance: 30% Yes, 70% No
+        modifiers: {
+            race: {
+                "Fishmen": { "Yes": -10, "No": 10 }, // Fishmen: 20% Yes, 80% No
+                "Merfolk": { "Yes": -10, "No": 10 } // Merfolk: 20% Yes, 80% No
+            },
+            occupation: {
+                "Marine": { "Yes": 5, "No": -5 }, // Marines: 35% Yes, 65% No
+                "Pirate": { "Yes": 15, "No": -15 }, // Pirates: 45% Yes, 55% No
+                "World Government": { "Yes": 10, "No": -10 } // WG: 40% Yes, 60% No
+            }
+        }
+    }
+};
+
 // Fix the spin function to properly prevent spinning between selections
 function spin() {
     if (isSpinning || wheelProcessing || !segments || segments.length === 0) return;
@@ -576,11 +627,77 @@ function spin() {
     wheelProcessing = true; // Set this flag to block any spins until completely done
     disableSpinButton(true); // Disable the button
     
-    // 1. First, randomly select which segment we want to land on (this is the BACKEND selection)
-    const winningIndex = Math.floor(Math.random() * segments.length);
-    const winningSegment = segments[winningIndex];
+    // Get current category
+    const currentCategory = wheelConfig.categories[currentCategoryIndex].title;
     
-    console.log("Backend selected winner:", winningSegment, "at index:", winningIndex);
+    // Calculate weights for this category if available
+    let winningIndex = 0;
+    
+    if (optionWeights[currentCategory]) {
+        // Start with base weights
+        const weightConfig = optionWeights[currentCategory];
+        let weights = {...weightConfig.base};
+        
+        console.log(`Using weighted selection for ${currentCategory}`);
+        console.log(`Base weights:`, weights);
+        
+        // Apply race modifiers if race is set
+        if (weightConfig.modifiers.race && characterStats.race) {
+            const raceModifiers = weightConfig.modifiers.race[characterStats.race];
+            if (raceModifiers) {
+                for (const option in raceModifiers) {
+                    weights[option] = Math.max(0, (weights[option] || 0) + raceModifiers[option]);
+                }
+                console.log(`After race modifiers:`, weights);
+            }
+        }
+        
+        // Apply occupation modifiers if occupation is set
+        if (weightConfig.modifiers.occupation && characterStats.occupation) {
+            const occupationModifiers = weightConfig.modifiers.occupation[characterStats.occupation];
+            if (occupationModifiers) {
+                for (const option in occupationModifiers) {
+                    weights[option] = Math.max(0, (weights[option] || 0) + occupationModifiers[option]);
+                }
+                console.log(`After occupation modifiers:`, weights);
+            }
+        }
+        
+        // Normalize weights to ensure they sum to 100
+        const totalWeight = Object.values(weights).reduce((sum, weight) => sum + weight, 0);
+        for (const option in weights) {
+            weights[option] = (weights[option] / totalWeight) * 100;
+        }
+        
+        console.log(`Normalized weights:`, weights);
+        
+        // Use weights for selection
+        const randomValue = Math.random() * 100;
+        let cumulativeWeight = 0;
+        
+        // Map option names to their indices in the segments array
+        const optionToIndex = {};
+        segments.forEach((segment, index) => {
+            optionToIndex[segment] = index;
+        });
+        
+        // Select based on weights
+        for (const option in weights) {
+            cumulativeWeight += weights[option];
+            if (randomValue <= cumulativeWeight && optionToIndex[option] !== undefined) {
+                winningIndex = optionToIndex[option];
+                break;
+            }
+        }
+        
+        console.log(`Selected ${segments[winningIndex]} with random value ${randomValue}`);
+    } else {
+        // Use standard random selection
+        winningIndex = Math.floor(Math.random() * segments.length);
+        console.log(`Using standard random selection for ${currentCategory}`);
+    }
+    
+    const winningSegment = segments[winningIndex];
     
     // 2. Calculate segment angle size
     const segmentAngle = 360 / segments.length;
@@ -704,6 +821,12 @@ function spin() {
         // Add to selections history
         if (currentCategoryIndex < wheelConfig.categories.length) {
             const category = wheelConfig.categories[currentCategoryIndex].title;
+            const statKey = wheelConfig.categories[currentCategoryIndex].statKey;
+            
+            // Debug the selection values
+            console.log(`Saving spin result: ${category} -> "${winningSegment}"`);
+            
+            // Update with exact string matching
             updateSelections(category, winningSegment);
         }
         
@@ -870,11 +993,30 @@ function dragEnd() {
     isDragging = false;
 }
 
-// Update the updateSelections function to only track character stats
+// Update the updateSelections function to properly handle conditionals
 function updateSelections(category, selection) {
-    // Only process if it's a character stat
     if (!CHARACTER_STATS.includes(category)) return;
 
+    // Find the statKey for this category
+    let statKey = null;
+    for (const cat of wheelConfig.categories) {
+        if (cat.title === category) {
+            statKey = cat.statKey;
+            break;
+        }
+    }
+
+    // Update the character stats directly
+    if (statKey) {
+        // Store the EXACT selection value, not a transformed version
+        characterStats[statKey] = selection;
+        console.log(`Updated character stat ${statKey} to "${selection}"`);
+    }
+    
+    // Debug to verify correct updates
+    console.log("Character stats after update:", JSON.stringify(characterStats));
+
+    // Update UI display as before
     const selectionsList = document.getElementById('selections-list');
     const existingItem = Array.from(selectionsList.children).find(
         item => item.dataset.category === category
@@ -898,9 +1040,12 @@ function updateSelections(category, selection) {
         selectionsList.appendChild(item);
     }
 
-    // Mark this category as completed
+    // Mark category as completed
     completedCategories.add(category);
     saveToLocalStorage();
+
+    // Update power calculation after stats change
+    updatePowerDisplay();
 }
 
 // Add this function to save selections
