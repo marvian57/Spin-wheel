@@ -289,6 +289,85 @@ body.spinning .wheel {
     background: rgba(0, 0, 0, 0.5);
 }
 
+/* Admin Section */
+.admin-section {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #444;
+}
+
+.admin-toggle {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.toggle-checkbox {
+  margin-right: 10px;
+}
+
+#admin-controls {
+  background-color: #2a2a2a;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.category-shortcut {
+  margin: 5px 0;
+  padding: 8px 10px;
+  background-color: #444;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.category-shortcut:hover {
+  background-color: #555;
+}
+
+/* Admin Panel */
+.admin-panel {
+    position: absolute;
+    top: 70px; /* Position it below hamburger menu */
+    right: 10px;
+    background-color: rgba(0, 0, 0, 0.8);
+    padding: 12px;
+    border-radius: 8px;
+    color: white;
+    z-index: 999;
+    width: 200px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.admin-toggle {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.toggle-checkbox {
+    margin-right: 10px;
+}
+
+.toggle-label {
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.category-shortcut {
+    margin: 5px 0;
+    padding: 8px;
+    background-color: #444;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.category-shortcut:hover {
+    background-color: #555;
+}
+
 /* Mobile optimization */
 @media (max-width: 480px) {
   :root {

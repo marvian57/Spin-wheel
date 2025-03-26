@@ -271,7 +271,7 @@ function loadWheelConfig() {
     }
 }
 
-// Update loadCategory to handle conditional categories
+// Simple fix for conditional categories
 function loadCategory(index) {
     if (!wheelConfig || !wheelConfig.categories || index >= wheelConfig.categories.length) {
         return;
@@ -280,15 +280,12 @@ function loadCategory(index) {
     const category = wheelConfig.categories[index];
     console.log(`Loading category: ${category.title}`);
     
-    // Check if this is a conditional category
+    // Check if this category has a condition
     if (category.conditional) {
         const dependsOn = category.conditional.category;
         const requiredValue = category.conditional.value;
         
-        console.log(`Checking condition for ${category.title}: ${dependsOn} should be "${requiredValue}"`);
-        console.log(`Current character stats: ${JSON.stringify(characterStats)}`);
-        
-        // Find the dependency statKey
+        // Find the dependency's statKey
         let dependsOnStatKey = null;
         for (const cat of wheelConfig.categories) {
             if (cat.title === dependsOn) {
@@ -297,30 +294,25 @@ function loadCategory(index) {
             }
         }
         
-        // Get the actual value from character stats, ensuring exact string comparison
-        let actualValue = null;
-        if (dependsOnStatKey) {
-            actualValue = characterStats[dependsOnStatKey];
-            console.log(`Found statKey ${dependsOnStatKey} with value "${actualValue}"`);
-        }
+        // Get the value from characterStats
+        const actualValue = characterStats[dependsOnStatKey];
         
-        // IMPORTANT: Use === for exact string comparison
-        const conditionMet = actualValue === requiredValue;
-        console.log(`Condition met? ${conditionMet} (${actualValue} === ${requiredValue})`);
+        // Debug log
+        console.log(`Checking condition: ${dependsOn} should be "${requiredValue}", actual value is "${actualValue}"`);
         
-        // Skip this category if condition not met
-        if (!conditionMet) {
-            console.log(`Condition not met, skipping to next category`);
+        // Simple string comparison, ensuring both are strings
+        if (String(actualValue) !== String(requiredValue)) {
+            console.log("Condition NOT met, skipping to next category");
             currentCategoryIndex++;
             if (currentCategoryIndex < wheelConfig.categories.length) {
                 loadCategory(currentCategoryIndex);
             } else {
-                finishCharacterCreation();
+                document.getElementById('category-title').textContent = "Complete";
             }
             return;
-        } else {
-            console.log(`Condition met, showing category ${category.title}`);
         }
+        
+        console.log("Condition met, showing category");
     }
     
     // Skip if already completed
@@ -329,7 +321,7 @@ function loadCategory(index) {
         if (currentCategoryIndex < wheelConfig.categories.length) {
             loadCategory(currentCategoryIndex);
         } else {
-            finishCharacterCreation();
+            document.getElementById('category-title').textContent = "Complete";
         }
         return;
     }
@@ -344,8 +336,7 @@ function loadCategory(index) {
     // Create wheel
     createWheel();
     
-    // Update the selection display to show the current segment at the pointer
-    // This is the key addition:
+    // Update the selection display
     setTimeout(() => updateSelectionDisplay(), 10);
     
     // Enable spin button if needed
@@ -1157,9 +1148,115 @@ function spinWithAnimation() {
     }
 }
 
-// Add power display to stats panel
+// Admin mode functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const adminToggle = document.getElementById('admin-mode');
+    const adminControls = document.getElementById('admin-controls');
+    const categoryShortcuts = document.getElementById('category-shortcuts');
+    const selectionsList = document.getElementById('selections-list');
+    
+    // Toggle admin mode
+    adminToggle.addEventListener('change', function() {
+        if (this.checked) {
+            adminControls.style.display = 'block';
+            // Build category shortcuts
+            buildCategoryShortcuts();
+        } else {
+            adminControls.style.display = 'none';
+        }
+    });
+    
+    // Build category shortcuts
+    function buildCategoryShortcuts() {
+        // Clear existing shortcuts
+        categoryShortcuts.innerHTML = '';
+        
+        // Add shortcuts for each category
+        if (wheelConfig && wheelConfig.categories) {
+            wheelConfig.categories.forEach((category, index) => {
+                const shortcut = document.createElement('div');
+                shortcut.className = 'category-shortcut';
+                shortcut.textContent = category.title;
+                shortcut.dataset.index = index;
+                
+                // Add completed indicator
+                if (completedCategories.has(category.title)) {
+                    shortcut.style.textDecoration = 'line-through';
+                    shortcut.style.opacity = '0.7';
+                }
+                
+                shortcut.addEventListener('click', function() {
+                    // Jump to this category
+                    adminJumpToCategory(parseInt(this.dataset.index));
+                });
+                
+                categoryShortcuts.appendChild(shortcut);
+            });
+        }
+    }
+    
+    // Function to jump to a category
+    function adminJumpToCategory(index) {
+        // Skip to the selected category
+        currentCategoryIndex = index;
+        
+        // Load the selected category
+        if (currentCategoryIndex < wheelConfig.categories.length) {
+            const category = wheelConfig.categories[currentCategoryIndex];
+            
+            // If this is a conditional category, we need to satisfy the condition
+            if (category.conditional) {
+                const dependsOn = category.conditional.category;
+                const requiredValue = category.conditional.value;
+                
+                // Find the dependency
+                let dependencyCategory = null;
+                let dependencyStatKey = null;
+                
+                for (const cat of wheelConfig.categories) {
+                    if (cat.title === dependsOn) {
+                        dependencyCategory = cat;
+                        dependencyStatKey = cat.statKey;
+                        break;
+                    }
+                }
+                
+                // If we found the dependency, set its value to satisfy the condition
+                if (dependencyCategory && dependencyStatKey) {
+                    // Set the required value
+                    characterStats[dependencyStatKey] = requiredValue;
+                    
+                    // Update the selections display
+                    updateSelections(dependsOn, requiredValue);
+                    
+                    console.log(`Set dependency ${dependsOn} to ${requiredValue} to satisfy condition`);
+                }
+            }
+            
+            // Load the category
+            loadCategory(currentCategoryIndex);
+            wheelProcessing = false;
+            disableSpinButton(false);
+            console.log(`Admin mode: jumped to category ${category.title}`);
+            
+            // Update shortcuts to reflect new state
+            buildCategoryShortcuts();
+        } else {
+            document.getElementById('category-title').textContent = "Complete";
+            wheelProcessing = true;
+            disableSpinButton(true);
+        }
+    }
+});
+
+// Fix for power calculation
 function updatePowerDisplay() {
-    const power = characterStats.power;
+    // Calculate the current power first
+    const power = calculatePower();
+    
+    // Update the character stats object with calculated power
+    characterStats.power = power;
+    
     const powerLevel = getPowerTier(power);
     
     // Find or create power display
@@ -1171,22 +1268,15 @@ function updatePowerDisplay() {
         document.getElementById('settings-panel').appendChild(powerDisplay);
     }
     
+    // Update the display
     powerDisplay.innerHTML = `
         <h3>Power Level: ${power}</h3>
         <div class="power-meter">
-            <div class="power-fill" style="width: ${Math.min(100, power/30)}%"></div>
+            <div class="power-fill" style="width: ${Math.min(100, power/50)}%"></div>
         </div>
         <p>Tier: ${powerLevel}</p>
     `;
+    
+    console.log(`Updated power display: ${power} (${powerLevel})`);
 }
 
-// Determine character tier based on power
-function getPowerTier(power) {
-    if (power < 500) return "Civilian";
-    if (power < 1000) return "Fighter";
-    if (power < 2000) return "Officer";
-    if (power < 3000) return "Vice Admiral / Commander";
-    if (power < 4000) return "Admiral / Emperor Commander";
-    if (power < 5000) return "Top Tier";
-    return "Legendary";
-}

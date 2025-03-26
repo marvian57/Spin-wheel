@@ -18,6 +18,17 @@
         </div>
     </div>
 
+    <div id="admin-panel" class="admin-panel">
+        <div class="admin-toggle">
+            <input type="checkbox" id="admin-mode" class="toggle-checkbox">
+            <label for="admin-mode" class="toggle-label">Admin Mode</label>
+        </div>
+        <div id="admin-controls" style="display: none;">
+            <h3>Quick Navigation</h3>
+            <div id="category-shortcuts"></div>
+        </div>
+    </div>
+
     <!-- Update the settings panel HTML -->
     <div class="settings-panel" id="settings-panel">
         <h3>Your Character Stats</h3>
@@ -199,6 +210,10 @@
         </textarea>
         <button onclick="loadWheelConfig()">Load Configuration</button>
     </div>
+
+   
+
     <script src="script.js"></script>
+    <script src="sdcharacter-stats.js"></script>
 </body>
 </html>
