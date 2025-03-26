@@ -907,23 +907,6 @@ window.addEventListener('resize', function() {
 });
 
 // Add this after your existing initialization code
-document.addEventListener('DOMContentLoaded', function() {
-    const hamburger = document.getElementById('hamburger');
-    const settingsPanel = document.getElementById('settings-panel');
-    
-    // Toggle settings panel
-    hamburger.addEventListener('click', function(e) {
-        if (!isDragging) {
-            this.classList.toggle('active');
-            settingsPanel.style.display = settingsPanel.style.display === 'none' ? 'block' : 'none';
-        }
-    });
-
-    // Make hamburger draggable
-    hamburger.addEventListener('mousedown', dragStart);
-    document.addEventListener('mousemove', drag);
-    document.addEventListener('mouseup', dragEnd);
-});
 
 // Dragging functions
 function dragStart(e) {
@@ -987,20 +970,77 @@ function updateSelections(category, selection, skipNext = true) {
     );
 
     if (existingItem) {
-        existingItem.querySelector('input').value = selection;
+        // Check if the item has an input or select element
+        const inputElement = existingItem.querySelector('input');
+        const selectElement = existingItem.querySelector('select');
+        
+        if (inputElement) {
+            inputElement.value = selection;
+        } else if (selectElement) {
+            // For dropdowns, find and select the matching option
+            for (let i = 0; i < selectElement.options.length; i++) {
+                if (selectElement.options[i].value === selection) {
+                    selectElement.selectedIndex = i;
+                    break;
+                }
+            }
+        }
     } else {
         const item = document.createElement('div');
         item.className = 'selection-item';
         item.dataset.category = category;
+        
+        // Different input type based on options
+        let inputHtml = '';
+        
+        // Get the category object for options
+        const categoryObj = wheelConfig.categories.find(cat => cat.title === category);
+        
+        // For Yes/No questions, use dropdown
+        if (categoryObj && categoryObj.options && 
+            categoryObj.options.length === 2 && 
+            categoryObj.options.includes("Yes") && 
+            categoryObj.options.includes("No")) {
+            
+            inputHtml = `
+                <select class="stat-value" 
+                        onchange="updateCharacterStat('${category}', this.value)">
+                    <option value="" ${selection === "" ? "selected" : ""}>Select...</option>
+                    <option value="Yes" ${selection === "Yes" ? "selected" : ""}>Yes</option>
+                    <option value="No" ${selection === "No" ? "selected" : ""}>No</option>
+                </select>
+            `;
+        } 
+        // For options with limited choices, use dropdown
+        else if (categoryObj && categoryObj.options && categoryObj.options.length > 0) {
+            inputHtml = `
+                <select class="stat-value" 
+                        onchange="updateCharacterStat('${category}', this.value)">
+                    <option value="">Select...</option>
+                    ${categoryObj.options.map(opt => 
+                        `<option value="${opt}" ${selection === opt ? "selected" : ""}>${opt}</option>`
+                    ).join('')}
+                </select>
+            `;
+        } 
+        // For free-form input, use text field
+        else {
+            inputHtml = `
+                <input type="text" 
+                       value="${selection}" 
+                       placeholder="Enter value..." 
+                       onchange="updateCharacterStat('${category}', this.value)"
+                       class="stat-value">
+            `;
+        }
+        
         item.innerHTML = `
             <div class="stat-entry">
                 <span class="stat-label">${category}:</span>
-                <input type="text" 
-                       value="${selection}" 
-                       onchange="updateCharacterStat('${category}', this.value)"
-                       class="stat-value">
+                ${inputHtml}
             </div>
         `;
+        
         selectionsList.appendChild(item);
     }
 
@@ -1027,10 +1067,16 @@ function updateSelections(category, selection, skipNext = true) {
 function saveToLocalStorage() {
     const selectionsList = document.getElementById('selections-list');
     const savedData = {
-        selections: Array.from(selectionsList.children).map(item => ({
-            category: item.dataset.category,
-            selection: item.querySelector('input').value
-        })),
+        selections: Array.from(selectionsList.children).map(item => {
+            const inputElement = item.querySelector('input');
+            const selectElement = item.querySelector('select');
+            
+            return {
+                category: item.dataset.category,
+                selection: inputElement ? inputElement.value : 
+                          (selectElement ? selectElement.options[selectElement.selectedIndex].value : "")
+            };
+        }),
         completedCategories: Array.from(completedCategories)
     };
     
@@ -1071,38 +1117,57 @@ function loadSavedSelections() {
 
 // Add function to update character stats
 function updateCharacterStat(category, newValue) {
-    if (!CHARACTER_STATS.includes(category)) return;
-    
-    // Update in selections array
-    const selectionIndex = selections.findIndex(s => s.category === category);
-    if (selectionIndex >= 0) {
-        selections[selectionIndex].selection = newValue;
-    } else {
-        selections.push({
-            category: category,
-            selection: newValue
-        });
+    // Find the statKey for this category
+    let statKey = null;
+    for (const cat of wheelConfig.categories) {
+        if (cat.title === category) {
+            statKey = cat.statKey;
+            break;
+        }
     }
 
-    // Mark category as completed
+    // Update the character stats directly
+    if (statKey) {
+        // Always store as string to fix comparison issues
+        characterStats[statKey] = String(newValue);
+        console.log(`Manual update: ${statKey} = "${newValue}"`);
+        
+        // Special case: Handle race-specific rules
+        if (statKey === "race" && newValue !== "Humans") {
+            // If race is not human, automatically set Will of D to No
+            characterStats.willOfD = "No";
+            completedCategories.add("Do you have the Will of D?");
+        }
+    }
+
+    // Mark this category as completed
     completedCategories.add(category);
     
-    // If this is the current category, move to next
-    if (wheelConfig.categories[currentCategoryIndex]?.title === category) {
-        nextCategory();
-    }
-
+    // Update UI display
+    updateSelections(category, newValue, false);
+    
     // Save to localStorage
     saveToLocalStorage();
     
-    // Skip to next uncompleted category if needed
+    // If this is the current category, move to next
+    if (currentCategoryIndex < wheelConfig.categories.length && 
+        wheelConfig.categories[currentCategoryIndex].title === category) {
+        nextCategory();
+    }
+    
+    // Skip any categories that are already completed
     while (currentCategoryIndex < wheelConfig.categories.length && 
            completedCategories.has(wheelConfig.categories[currentCategoryIndex].title)) {
         currentCategoryIndex++;
     }
     
+    // Load next category or finish
     if (currentCategoryIndex < wheelConfig.categories.length) {
         loadCategory(currentCategoryIndex);
+    } else {
+        document.getElementById('category-title').textContent = "Complete";
+        wheelProcessing = true;
+        disableSpinButton(true);
     }
 }
 
@@ -1131,107 +1196,6 @@ function spinWithAnimation() {
         spin();
     }
 }
-
-// Admin mode functionality
-document.addEventListener('DOMContentLoaded', function() {
-    const adminToggle = document.getElementById('admin-mode');
-    const adminControls = document.getElementById('admin-controls');
-    const categoryShortcuts = document.getElementById('category-shortcuts');
-    const selectionsList = document.getElementById('selections-list');
-    
-    // Toggle admin mode
-    adminToggle.addEventListener('change', function() {
-        if (this.checked) {
-            adminControls.style.display = 'block';
-            // Build category shortcuts
-            buildCategoryShortcuts();
-        } else {
-            adminControls.style.display = 'none';
-        }
-    });
-    
-    // Build category shortcuts
-    function buildCategoryShortcuts() {
-        // Clear existing shortcuts
-        categoryShortcuts.innerHTML = '';
-        
-        // Add shortcuts for each category
-        if (wheelConfig && wheelConfig.categories) {
-            wheelConfig.categories.forEach((category, index) => {
-                const shortcut = document.createElement('div');
-                shortcut.className = 'category-shortcut';
-                shortcut.textContent = category.title;
-                shortcut.dataset.index = index;
-                
-                // Add completed indicator
-                if (completedCategories.has(category.title)) {
-                    shortcut.style.textDecoration = 'line-through';
-                    shortcut.style.opacity = '0.7';
-                }
-                
-                shortcut.addEventListener('click', function() {
-                    // Jump to this category
-                    adminJumpToCategory(parseInt(this.dataset.index));
-                });
-                
-                categoryShortcuts.appendChild(shortcut);
-            });
-        }
-    }
-    
-    // Function to jump to a category
-    function adminJumpToCategory(index) {
-        // Skip to the selected category
-        currentCategoryIndex = index;
-        
-        // Load the selected category
-        if (currentCategoryIndex < wheelConfig.categories.length) {
-            const category = wheelConfig.categories[currentCategoryIndex];
-            
-            // If this is a conditional category, we need to satisfy the condition
-            if (category.conditional) {
-                const dependsOn = category.conditional.category;
-                const requiredValue = category.conditional.value;
-                
-                // Find the dependency
-                let dependencyCategory = null;
-                let dependencyStatKey = null;
-                
-                for (const cat of wheelConfig.categories) {
-                    if (cat.title === dependsOn) {
-                        dependencyCategory = cat;
-                        dependencyStatKey = cat.statKey;
-                        break;
-                    }
-                }
-                
-                // If we found the dependency, set its value to satisfy the condition
-                if (dependencyCategory && dependencyStatKey) {
-                    // Set the required value
-                    characterStats[dependencyStatKey] = requiredValue;
-                    
-                    // Update the selections display
-                    updateSelections(dependsOn, requiredValue);
-                    
-                    console.log(`Set dependency ${dependsOn} to ${requiredValue} to satisfy condition`);
-                }
-            }
-            
-            // Load the category
-            loadCategory(currentCategoryIndex);
-            wheelProcessing = false;
-            disableSpinButton(false);
-            console.log(`Admin mode: jumped to category ${category.title}`);
-            
-            // Update shortcuts to reflect new state
-            buildCategoryShortcuts();
-        } else {
-            document.getElementById('category-title').textContent = "Complete";
-            wheelProcessing = true;
-            disableSpinButton(true);
-        }
-    }
-});
 
 // Fix for power calculation
 function updatePowerDisplay() {
@@ -1264,43 +1228,6 @@ function updatePowerDisplay() {
     console.log(`Updated power display: ${power} (${powerLevel})`);
 }
 
-// Add this function to pre-populate the settings panel with all categories
-function initializeSettingsPanel() {
-    if (!wheelConfig || !wheelConfig.categories) return;
-    
-    // Loop through all categories and add them to the settings panel
-    wheelConfig.categories.forEach(category => {
-        // Skip conditional categories for now
-        if (category.conditional) return;
-        
-        // Check if this category already exists in the selections list
-        const selectionsList = document.getElementById('selections-list');
-        const existingItem = Array.from(selectionsList.children).find(
-            item => item.dataset.category === category.title
-        );
-        
-        // If it doesn't exist, add it with an empty value
-        if (!existingItem) {
-            const item = document.createElement('div');
-            item.className = 'selection-item';
-            item.dataset.category = category.title;
-            item.innerHTML = `
-                <div class="stat-entry">
-                    <span class="stat-label">${category.title}:</span>
-                    <input type="text" 
-                           placeholder="Enter value..." 
-                           onchange="updateCharacterStat('${category.title}', this.value)"
-                           class="stat-value">
-                </div>
-            `;
-            selectionsList.appendChild(item);
-        }
-    });
-    
-    // Initialize power display
-    updatePowerDisplay();
-}
-
 // Update the DOMContentLoaded event handler
 document.addEventListener('DOMContentLoaded', function() {
     const hamburger = document.getElementById('hamburger');
@@ -1310,21 +1237,18 @@ document.addEventListener('DOMContentLoaded', function() {
     const categoryShortcuts = document.getElementById('category-shortcuts');
     
     // Toggle settings panel
-    hamburger.addEventListener('click', function(e) {
-        if (!isDragging) {
-            this.classList.toggle('active');
-            
-            // Toggle panel visibility
-            if (settingsPanel.style.display === 'none' || !settingsPanel.style.display) {
-                settingsPanel.style.display = 'block';
-                
-                // Initialize panel with all categories
-                initializeSettingsPanel();
-            } else {
-                settingsPanel.style.display = 'none';
-            }
+  // Replace your existing hamburger click event in the DOMContentLoaded event
+hamburger.addEventListener('click', function(e) {
+    if (!isDragging) {
+        // Simple toggle with clear visibility check
+        if (settingsPanel.style.display === 'block') {
+            settingsPanel.style.display = 'none';
+        } else {
+            settingsPanel.style.display = 'block';
+            initializeSettingsPanel();
         }
-    });
+    }
+});
 
     // Make hamburger draggable
     hamburger.addEventListener('mousedown', dragStart);
@@ -1445,5 +1369,101 @@ function initializeSettingsPanel() {
     
     // Initialize power display
     updatePowerDisplay();
+}
+
+// Update the hamburger click event handler to properly toggle
+const hamburgerClickHandler = function(e) {
+    if (!isDragging) {
+        // Simple AND RELIABLE toggle with explicit check
+        if (settingsPanel.style.display === 'block') {
+            settingsPanel.style.display = 'none';
+        } else {
+            settingsPanel.style.display = 'block';
+            initializeSettingsPanel();
+        }
+    }
+};
+
+
+// (since they're referenced in the correct DOMContentLoaded event handler)
+function buildCategoryShortcuts() {
+    const categoryShortcuts = document.getElementById('category-shortcuts');
+    // Clear existing shortcuts
+    categoryShortcuts.innerHTML = '';
+    
+    // Add shortcuts for each category
+    if (wheelConfig && wheelConfig.categories) {
+        wheelConfig.categories.forEach((category, index) => {
+            const shortcut = document.createElement('div');
+            shortcut.className = 'category-shortcut';
+            shortcut.textContent = category.title;
+            shortcut.dataset.index = index;
+            
+            // Add completed indicator
+            if (completedCategories.has(category.title)) {
+                shortcut.style.textDecoration = 'line-through';
+                shortcut.style.opacity = '0.7';
+            }
+            
+            shortcut.addEventListener('click', function() {
+                // Jump to this category
+                adminJumpToCategory(parseInt(this.dataset.index));
+            });
+            
+            categoryShortcuts.appendChild(shortcut);
+        });
+    }
+}
+
+function adminJumpToCategory(index) {
+    // Skip to the selected category
+    currentCategoryIndex = index;
+    
+    // Load the selected category
+    if (currentCategoryIndex < wheelConfig.categories.length) {
+        const category = wheelConfig.categories[currentCategoryIndex];
+        
+        // If this is a conditional category, we need to satisfy the condition
+        if (category.conditional) {
+            const dependsOn = category.conditional.category;
+            const requiredValue = category.conditional.value;
+            
+            // Find the dependency
+            let dependencyCategory = null;
+            let dependencyStatKey = null;
+            
+            for (const cat of wheelConfig.categories) {
+                if (cat.title === dependsOn) {
+                    dependencyCategory = cat;
+                    dependencyStatKey = cat.statKey;
+                    break;
+                }
+            }
+            
+            // If we found the dependency, set its value to satisfy the condition
+            if (dependencyCategory && dependencyStatKey) {
+                // Set the required value
+                characterStats[dependencyStatKey] = requiredValue;
+                
+                // Update the selections display
+                updateSelections(dependsOn, requiredValue);
+                
+                console.log(`Set dependency ${dependsOn} to ${requiredValue} to satisfy condition`);
+            }
+        }
+        
+        // Load the category
+        loadCategory(currentCategoryIndex);
+        wheelProcessing = false;
+        disableSpinButton(false);
+        console.log(`Admin mode: jumped to category ${category.title}`);
+        
+        // Update shortcuts to reflect new state
+        buildCategoryShortcuts();
+    } else {
+        document.getElementById('category-title').textContent = "Complete";
+        wheelProcessing = true;
+        disableSpinButton(true);
+    }
 }
 
