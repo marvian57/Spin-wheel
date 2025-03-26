@@ -771,58 +771,41 @@ function spin() {
     // When spin completes - with error handling
     setTimeout(() => {
         isSpinning = false;
-        // DO NOT re-enable the button here - remove this line
-        // disableSpinButton(false);
         clearInterval(liveUpdateInterval);
         
         // Store final rotation
         deg = finalRotation;
         
-        // FORCE the selection to match the backend winner regardless of visual position
+        // FORCE the selection to match the backend winner
         selection.textContent = winningSegment;
         
         // Play selection sound
         selectSound.play().catch(e => console.log("Sound error:", e));
         
-        // Redraw wheel with highlighted winning segment
-        setTimeout(() => {
-            highlightWinningSegment(winningIndex);
-        }, 50);
-        
-        // Debug logs to confirm final selection
-        console.log("Spin completed, final rotation:", finalRotation);
-        console.log("Backend winner (forced):", winningSegment);
-        
-        // Add to selections history with error checking
-        if (currentCategoryIndex < wheelConfig.categories.length) {
-            selections.push({
-                category: wheelConfig.categories[currentCategoryIndex].title,
-                selection: winningSegment
-            });
-        }
+        // Highlight winning segment
+        highlightWinningSegment(winningIndex);
         
         // Add to selections history
         if (currentCategoryIndex < wheelConfig.categories.length) {
             const category = wheelConfig.categories[currentCategoryIndex].title;
-            const statKey = wheelConfig.categories[currentCategoryIndex].statKey;
             
-            // Debug the selection values
-            console.log(`Saving spin result: ${category} -> "${winningSegment}"`);
-            
-            // Update with exact string matching
-            updateSelections(category, winningSegment);
+            // Wait a moment before updating selections and moving to next category
+            setTimeout(() => {
+                // Update with exact string matching - but DON'T auto-advance yet
+                updateSelections(category, winningSegment, false); // Pass false to prevent auto-advancing
+                
+                // THEN wait another moment before moving to next category
+                setTimeout(() => {
+                    nextCategory();
+                    
+                    // Only re-enable button if there are more categories
+                    if (currentCategoryIndex < wheelConfig.categories.length) {
+                        wheelProcessing = false;
+                        disableSpinButton(false);
+                    }
+                }, 1000); // Wait 1 second before moving to next category
+            }, 500); // Wait 0.5 seconds before updating selections
         }
-        
-        // Delay before next category
-        setTimeout(() => {
-            nextCategory();
-            
-            // ONLY re-enable the button here IF there are more categories
-            if (currentCategoryIndex < wheelConfig.categories.length) {
-                wheelProcessing = false; // Only reset this when truly ready for next spin
-                disableSpinButton(false);
-            }
-        }, 1500);
     }, spinDuration + 100);
 }
 
@@ -977,7 +960,7 @@ function dragEnd() {
 }
 
 // Fix the updateSelections function to ensure values are stored as strings
-function updateSelections(category, selection) {
+function updateSelections(category, selection, skipNext = true) {
     // Find the statKey for this category
     let statKey = null;
     for (const cat of wheelConfig.categories) {
@@ -1026,6 +1009,18 @@ function updateSelections(category, selection) {
     
     // Save to localStorage
     saveToLocalStorage();
+
+    // Update power calculation after stats change
+    updatePowerDisplay();
+    
+    // Skip to next category if this was a manual update and skipNext is true
+    if (skipNext) {
+        // Skip the current category if it matches what we just updated
+        if (currentCategoryIndex < wheelConfig.categories.length && 
+            wheelConfig.categories[currentCategoryIndex].title === category) {
+            nextCategory();
+        }
+    }
 }
 
 // Add this function to save selections
@@ -1267,5 +1262,188 @@ function updatePowerDisplay() {
     `;
     
     console.log(`Updated power display: ${power} (${powerLevel})`);
+}
+
+// Add this function to pre-populate the settings panel with all categories
+function initializeSettingsPanel() {
+    if (!wheelConfig || !wheelConfig.categories) return;
+    
+    // Loop through all categories and add them to the settings panel
+    wheelConfig.categories.forEach(category => {
+        // Skip conditional categories for now
+        if (category.conditional) return;
+        
+        // Check if this category already exists in the selections list
+        const selectionsList = document.getElementById('selections-list');
+        const existingItem = Array.from(selectionsList.children).find(
+            item => item.dataset.category === category.title
+        );
+        
+        // If it doesn't exist, add it with an empty value
+        if (!existingItem) {
+            const item = document.createElement('div');
+            item.className = 'selection-item';
+            item.dataset.category = category.title;
+            item.innerHTML = `
+                <div class="stat-entry">
+                    <span class="stat-label">${category.title}:</span>
+                    <input type="text" 
+                           placeholder="Enter value..." 
+                           onchange="updateCharacterStat('${category.title}', this.value)"
+                           class="stat-value">
+                </div>
+            `;
+            selectionsList.appendChild(item);
+        }
+    });
+    
+    // Initialize power display
+    updatePowerDisplay();
+}
+
+// Update the DOMContentLoaded event handler
+document.addEventListener('DOMContentLoaded', function() {
+    const hamburger = document.getElementById('hamburger');
+    const settingsPanel = document.getElementById('settings-panel');
+    const adminToggle = document.getElementById('admin-mode');
+    const adminControls = document.getElementById('admin-controls');
+    const categoryShortcuts = document.getElementById('category-shortcuts');
+    
+    // Toggle settings panel
+    hamburger.addEventListener('click', function(e) {
+        if (!isDragging) {
+            this.classList.toggle('active');
+            
+            // Toggle panel visibility
+            if (settingsPanel.style.display === 'none' || !settingsPanel.style.display) {
+                settingsPanel.style.display = 'block';
+                
+                // Initialize panel with all categories
+                initializeSettingsPanel();
+            } else {
+                settingsPanel.style.display = 'none';
+            }
+        }
+    });
+
+    // Make hamburger draggable
+    hamburger.addEventListener('mousedown', dragStart);
+    document.addEventListener('mousemove', drag);
+    document.addEventListener('mouseup', dragEnd);
+    
+    // Toggle admin mode
+    adminToggle.addEventListener('change', function() {
+        if (this.checked) {
+            adminControls.style.display = 'block';
+            // Build category shortcuts
+            buildCategoryShortcuts();
+        } else {
+            adminControls.style.display = 'none';
+        }
+    });
+});
+
+// Add this function to initialize the settings panel with editable inputs
+function initializeSettingsPanel() {
+    if (!wheelConfig || !wheelConfig.categories) return;
+    
+    // Loop through all categories and add them to the settings panel
+    wheelConfig.categories.forEach(category => {
+        // Skip categories without titles
+        if (!category.title) return;
+        
+        // Check if this category already exists in the selections list
+        const selectionsList = document.getElementById('selections-list');
+        const existingItem = Array.from(selectionsList.children).find(
+            item => item.dataset.category === category.title
+        );
+        
+        // Get current value from characterStats if available
+        let statKey = null;
+        for (const cat of wheelConfig.categories) {
+            if (cat.title === category.title) {
+                statKey = cat.statKey;
+                break;
+            }
+        }
+        
+        const currentValue = statKey ? characterStats[statKey] || "" : "";
+        
+        // If it doesn't exist, add it with an empty or current value
+        if (!existingItem) {
+            const item = document.createElement('div');
+            item.className = 'selection-item';
+            item.dataset.category = category.title;
+            
+            // Different input type based on options
+            let inputHtml = '';
+            
+            // For Yes/No questions, use dropdown
+            if (category.options && 
+                category.options.length === 2 && 
+                category.options.includes("Yes") && 
+                category.options.includes("No")) {
+                
+                inputHtml = `
+                    <select class="stat-value" 
+                            onchange="updateCharacterStat('${category.title}', this.value)">
+                        <option value="" ${currentValue === "" ? "selected" : ""}>Select...</option>
+                        <option value="Yes" ${currentValue === "Yes" ? "selected" : ""}>Yes</option>
+                        <option value="No" ${currentValue === "No" ? "selected" : ""}>No</option>
+                    </select>
+                `;
+            } 
+            // For options with limited choices, use dropdown
+            else if (category.options && category.options.length > 0) {
+                inputHtml = `
+                    <select class="stat-value" 
+                            onchange="updateCharacterStat('${category.title}', this.value)">
+                        <option value="">Select...</option>
+                        ${category.options.map(opt => 
+                            `<option value="${opt}" ${currentValue === opt ? "selected" : ""}>${opt}</option>`
+                        ).join('')}
+                    </select>
+                `;
+            } 
+            // For free-form input, use text field
+            else {
+                inputHtml = `
+                    <input type="text" 
+                           value="${currentValue}" 
+                           placeholder="Enter value..." 
+                           onchange="updateCharacterStat('${category.title}', this.value)"
+                           class="stat-value">
+                `;
+            }
+            
+            item.innerHTML = `
+                <div class="stat-entry">
+                    <span class="stat-label">${category.title}:</span>
+                    ${inputHtml}
+                </div>
+            `;
+            
+            selectionsList.appendChild(item);
+        }
+        // If it exists but doesn't have the right value, update it
+        else if (currentValue && existingItem.querySelector('input, select').value !== currentValue) {
+            const input = existingItem.querySelector('input, select');
+            if (input.tagName === 'SELECT') {
+                // For dropdowns, find and select the option
+                for (let i = 0; i < input.options.length; i++) {
+                    if (input.options[i].value === currentValue) {
+                        input.selectedIndex = i;
+                        break;
+                    }
+                }
+            } else {
+                // For text inputs
+                input.value = currentValue;
+            }
+        }
+    });
+    
+    // Initialize power display
+    updatePowerDisplay();
 }
 
