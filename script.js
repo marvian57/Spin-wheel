@@ -302,8 +302,9 @@ function loadCategory(index) {
         console.log(`Dependency check: ${dependsOn} (${dependsOnStatKey}) value = "${actualValue}"`);
         console.log(`Required value = "${requiredValue}"`);
         
-        // Compare as strings (fixes comparison issues with Yes/No)
-        if (String(actualValue) !== String(requiredValue)) {
+        if (actualValue === true ? requiredValue !== "Yes" : 
+            actualValue === false ? requiredValue !== "No" : 
+            String(actualValue) !== String(requiredValue)) {
             console.log(`❌ Condition NOT met for ${category.title}, skipping to next category`);
             currentCategoryIndex++;
             if (currentCategoryIndex < wheelConfig.categories.length) {
