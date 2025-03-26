@@ -1,6 +1,6 @@
 :root {
   /* Wheel appearance */
-  --wheel-text-color: white;
+  --wheel-text-color: rgb(255, 255, 255);
   --wheel-font: bold 14px Arial;
   --wheel-size: 350px;
   
@@ -110,7 +110,7 @@ canvas {
     position: absolute;
     width: 50px;
     height: 50px;
-    background-color: white;
+    background-color: hsl(209, 32%, 54%);
     border-radius: 50%;
     top: 50%;
     left: 50%;
@@ -125,7 +125,7 @@ canvas {
 }
 
 .center-circle:hover {
-    background-color: #ddd;
+    background-color: hsl(209, 27%, 39%);
 }
 
 /* Arrow attached to the button */
