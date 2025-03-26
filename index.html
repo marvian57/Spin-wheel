@@ -58,7 +58,129 @@
         "Snakeneck",
         "Kinkobito",
         "Lunarians"
-      ]
+      ],
+      "statKey": "race"
+    },
+    {
+      "title": "Will of D?",
+      "options": ["Yes", "No"],
+      "conditional": {
+        "category": "What is your race?",
+        "value": "Humans"
+      },
+      "statKey": "willOfD"
+    },
+    {
+      "title": "Where were you born?",
+      "options": [
+        "East Blue", 
+        "West Blue", 
+        "North Blue", 
+        "South Blue",
+        "Grand Line", 
+        "New World", 
+        "Red Line", 
+        "Calm Belt",
+        "Sky Island", 
+        "Fish-Man Island"
+      ],
+      "statKey": "birthplace"
+    },
+    {
+      "title": "What are you?",
+      "options": [
+        "Pirate", 
+        "Marine", 
+        "Civilian", 
+        "Revolutionary Army",
+        "World Government", 
+        "Noble"
+      ],
+      "statKey": "occupation"
+    },
+    {
+      "title": "Do you have haki?",
+      "options": ["Yes", "No"],
+      "statKey": "hasHaki"
+    },
+    {
+      "title": "What type of haki?",
+      "options": [
+        "Observation Haki",
+        "Armament Haki",
+        "Conqueror's Haki",
+        "Observation & Armament",
+        "Observation & Conqueror's",
+        "Armament & Conqueror's",
+        "All Three Types"
+      ],
+      "conditional": {
+        "category": "Do you have haki?",
+        "value": "Yes"
+      },
+      "statKey": "hakiType"
+    },
+    {
+      "title": "Do you have a devil fruit?",
+      "options": ["Yes", "No"],
+      "statKey": "hasDevilFruit"
+    },
+    {
+      "title": "What devil fruit?",
+      "options": [
+        "Paramecia - Gomu Gomu",
+        "Paramecia - Bara Bara",
+        "Paramecia - Doru Doru",
+        "Paramecia - Mane Mane",
+        "Paramecia - Hana Hana",
+        "Paramecia - Ope Ope",
+        "Logia - Mera Mera",
+        "Logia - Moku Moku",
+        "Logia - Suna Suna",
+        "Logia - Goro Goro",
+        "Logia - Hie Hie",
+        "Logia - Yami Yami",
+        "Zoan - Ushi Ushi",
+        "Zoan - Tori Tori",
+        "Zoan - Zou Zou",
+        "Mythical Zoan - Phoenix",
+        "Ancient Zoan - T-Rex"
+      ],
+      "conditional": {
+        "category": "Do you have a devil fruit?",
+        "value": "Yes"
+      },
+      "statKey": "devilFruit"
+    },
+    {
+      "title": "What is your fighting style?",
+      "options": [
+        "Haki Combat",
+        "Rokushiki",
+        "Three Sword Style",
+        "Fish-Man Karate",
+        "Black Leg Style",
+        "Swordsmanship",
+        "Dragon Claw",
+        "Usopp Tactics",
+        "Hand-to-Hand Combat",
+        "Marksmanship",
+        "Weapon Specialist"
+      ],
+      "statKey": "fightingStyle"
+    },
+    {
+      "title": "What is your Fighting IQ?",
+      "options": [
+        "None", 
+        "Low", 
+        "Medium", 
+        "High", 
+        "Mastered", 
+        "Supreme Master", 
+        "Sliver of Truth"
+      ],
+      "statKey": "fightingIQ"
     },
     {
       "title": "How old are you?",
@@ -68,17 +190,9 @@
         "25-30",
         "30-60",
         "60-80"
-      ]
-    },
-    {
-      "title": "What are you?",
-      "options": [
-        "Marine",
-        "Pirate",
-        "Revolutionary",
-        "Bounty Hunter",
-        "Civilian"
-      ]
+      ],
+      "animation": "random",
+      "statKey": "age"
     }
   ]
 }
