@@ -286,7 +286,7 @@ function createWheel() {
     
     // Calculate font size based on number of segments and text length - MATCH HIGHLIGHT FUNCTION
     let fontSizePx = parseInt(getCssVar('--wheel-font-size')) || 10; // Get from CSS like highlightWinningSegment
-    let font = `bold ${fontSizePx}px monospace`;
+    let font = `${fontSizePx}px Arial`; // Removed "bold" and changed "monospace" to "Arial"
     
     // Apply anti-aliasing
     ctx.textBaseline = 'middle';
@@ -338,7 +338,7 @@ function createWheel() {
                     const line2 = "Model:" + (parts[1] || "").trim();
                     
                     // Draw two-line text
-                    ctx.font = `bold ${fontSizePx-1}px monospace`;
+                    ctx.font = `${fontSizePx-1}px Arial`; // Removed "bold" and changed "monospace" to "Arial"
                     ctx.fillText(line1, canvasCenter - 20, -fontSizePx/2);
                     ctx.fillText(line2, canvasCenter - 20, fontSizePx);
                 } 
@@ -349,18 +349,18 @@ function createWheel() {
                     const line2 = parts[1] ? parts[1].trim() : "";
                     
                     // Draw two-line text
-                    ctx.font = `bold ${fontSizePx-1}px monospace`;
+                    ctx.font = `${fontSizePx-1}px Arial`; // Removed "bold" and changed "monospace" to "Arial"
                     ctx.fillText(line1, canvasCenter - 20, -fontSizePx/2);
                     if (line2) ctx.fillText(line2, canvasCenter - 20, fontSizePx);
                 }
                 else {
                     // For other long text, just use a smaller font
-                    ctx.font = `bold ${fontSizePx-2}px monospace`;
+                    ctx.font = `${fontSizePx-2}px Arial`; // Removed "bold" and changed "monospace" to "Arial"
                     ctx.fillText(text, canvasCenter - 20, 5);
                 }
             } else {
                 // For moderately long text, just use a smaller font
-                ctx.font = `bold ${fontSizePx-1}px monospace`;
+                ctx.font = `${fontSizePx-1}px Arial`; // Removed "bold" and changed "monospace" to "Arial"
                 ctx.fillText(text, canvasCenter - 20, 5);
             }
         } else {
@@ -417,7 +417,7 @@ function highlightWinningSegment(winningIndex) {
     // Get text styling from CSS
     const textColor = getCssVar('--wheel-text-color') || 'white';
     let fontSizePx = parseInt(getCssVar('--wheel-font-size')) || 10;
-    let font = `bold ${fontSizePx}px monospace`;
+    let font = `${fontSizePx}px Arial`; // Removed "bold" and changed "monospace" to "Arial"
     
     // Apply anti-aliasing
     ctx.textBaseline = 'middle';
@@ -483,7 +483,7 @@ function highlightWinningSegment(winningIndex) {
                     const line2 = "Model:" + (parts[1] || "").trim();
                     
                     // Draw two-line text
-                    ctx.font = `bold ${fontSizePx-1}px monospace`;
+                    ctx.font = `${fontSizePx-1}px Arial`; // Removed "bold" and changed "monospace" to "Arial"
                     ctx.fillText(line1, canvasCenter - 20, -fontSizePx/2);
                     ctx.fillText(line2, canvasCenter - 20, fontSizePx);
                 } 
@@ -494,18 +494,18 @@ function highlightWinningSegment(winningIndex) {
                     const line2 = parts[1] ? parts[1].trim() : "";
                     
                     // Draw two-line text
-                    ctx.font = `bold ${fontSizePx-1}px monospace`;
+                    ctx.font = `${fontSizePx-1}px Arial`; // Removed "bold" and changed "monospace" to "Arial"
                     ctx.fillText(line1, canvasCenter - 20, -fontSizePx/2);
                     if (line2) ctx.fillText(line2, canvasCenter - 20, fontSizePx);
                 }
                 else {
                     // For other long text, just use a smaller font
-                    ctx.font = `bold ${fontSizePx-2}px monospace`;
+                    ctx.font = `${fontSizePx-2}px Arial`; // Removed "bold" and changed "monospace" to "Arial"
                     ctx.fillText(text, canvasCenter - 20, 5);
                 }
             } else {
                 // For moderately long text, just use a smaller font
-                ctx.font = `bold ${fontSizePx-1}px monospace`;
+                ctx.font = `${fontSizePx-1}px Arial`; // Removed "bold" and changed "monospace" to "Arial"
                 ctx.fillText(text, canvasCenter - 20, 5);
             }
         } else {
@@ -691,9 +691,11 @@ function spin() {
     // Always use exactly 3 seconds for animation
     const spinDuration = 3000;
     
-    // We'll use CSS transition for the smooth animation
+    // Add a hardware acceleration hint to reduce wiggling
+    canvas.style.willChange = 'transform';
+    canvas.style.backfaceVisibility = 'hidden';
     canvas.style.transition = `transform ${spinDuration/1000}s cubic-bezier(0.1, 0.7, 0.1, 1)`;
-    canvas.style.transform = `rotate(${finalRotation}deg)`;
+    canvas.style.transform = `translateZ(0) rotate(${Math.floor(finalRotation)}deg)`;
     
     // Track last segment for sound effects
     let lastTrackedIndex = -1;
@@ -768,6 +770,8 @@ function spin() {
                 }, 1000); // Wait 1 second before moving to next category
             }, 500); // Wait 0.5 seconds before updating selections
         }
+        
+        canvas.style.willChange = 'auto';
     }, spinDuration + 100);
 }
 
@@ -1554,8 +1558,8 @@ function drawSegmentText(ctx, text, centerX, centerY, radius, startAngle, arcSiz
             let splitIndex = text.lastIndexOf(' ', midPoint);
             if (splitIndex === -1) splitIndex = midPoint;
             
-            const line1 = text.substring(0, splitIndex);
-            const line2 = text.substring(splitIndex + 1);
+            const line1 = text.substring(0, splitIndex).trimEnd();
+            const line2 = text.substring(splitIndex).trimStart();
             
             // Draw two lines with vertical offset
             ctx.fillText(line1, 0, -actualFontSize);
@@ -1590,7 +1594,7 @@ if (textWidth > maxWidth) {
     const line2 = text.substring(spaceIndex).trimStart();
     
     // Slightly smaller font for two lines
-    ctx.font = `bold ${fontSizePx - 1}px monospace`;
+    ctx.font = `${fontSizePx - 1}px Arial`; // Removed "bold" and changed "monospace" to "Arial"
 
     // Draw the two lines around y=0
     const halfLine = (fontSizePx - 1) / 2;
