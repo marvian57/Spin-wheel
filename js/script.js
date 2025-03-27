@@ -266,11 +266,11 @@ function createWheel() {
     // Adjusted center point (using CSS size, not scaled canvas size)
     canvasCenter = wheelSize / 2;
     
-    // Draw gray border around the wheel - bigger and gray
+    // Draw black border around the wheel
     ctx.beginPath();
     ctx.arc(canvasCenter, canvasCenter, canvasCenter - 5, 0, 2 * Math.PI);
-    ctx.lineWidth = 4; // Increased from 2 to 4
-    ctx.strokeStyle = '#777777'; // Changed from black to gray
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = 'black';
     ctx.stroke();
     
     let segmentAngle = (2 * Math.PI) / segments.length;
@@ -333,8 +333,8 @@ function createWheel() {
                     
                     // Draw two-line text
                     ctx.font = `${fontSizePx-1}px Arial`; // Removed "bold" and changed "monospace" to "Arial"
-                    ctx.fillText(line1, canvasCenter - 20, -fontSizePx/2);
-                    ctx.fillText(line2, canvasCenter - 20, fontSizePx);
+                    ctx.fillText(line1, canvasCenter - 15, -fontSizePx/2);
+                    ctx.fillText(line2, canvasCenter - 15, fontSizePx);
                 } 
                 else if (text.includes("no Mi")) {
                     // Split at "no Mi"
@@ -344,22 +344,77 @@ function createWheel() {
                     
                     // Draw two-line text
                     ctx.font = `${fontSizePx-1}px Arial`; // Removed "bold" and changed "monospace" to "Arial"
-                    ctx.fillText(line1, canvasCenter - 20, -fontSizePx/2);
-                    if (line2) ctx.fillText(line2, canvasCenter - 20, fontSizePx);
+                    ctx.fillText(line1, canvasCenter - 15, -fontSizePx/2);
+                    if (line2) ctx.fillText(line2, canvasCenter - 15, fontSizePx);
                 }
                 else {
-                    // For other long text, just use a smaller font
-                    ctx.font = `${fontSizePx-2}px Arial`; // Removed "bold" and changed "monospace" to "Arial"
-                    ctx.fillText(text, canvasCenter - 20, 5);
+                    // For other long text, use better word breaks
+                    const words = text.split(' ');
+                    if (words.length > 1) {
+                        // Find best breaking point
+                        let line1 = '';
+                        let line2 = '';
+                        let totalLength = text.length;
+                        let currentLength = 0;
+                        
+                        for (let i = 0; i < words.length; i++) {
+                            currentLength += words[i].length + 1;
+                            if (currentLength > totalLength / 2) {
+                                line1 = words.slice(0, i).join(' ');
+                                line2 = words.slice(i).join(' ');
+                                break;
+                            }
+                        }
+                        
+                        // Draw two-line text with better spacing
+                        ctx.font = `${fontSizePx-1}px Arial`;
+                        ctx.fillText(line1, canvasCenter - 15, -fontSizePx/1.5);
+                        ctx.fillText(line2, canvasCenter - 15, fontSizePx/1.5);
+                    } else {
+                        // Single long word - just use smaller font
+                        ctx.font = `${fontSizePx-2}px Arial`;
+                        ctx.fillText(text, canvasCenter - 15, 0);
+                    }
                 }
             } else {
-                // For moderately long text, just use a smaller font
-                ctx.font = `${fontSizePx-1}px Arial`; // Removed "bold" and changed "monospace" to "Arial"
-                ctx.fillText(text, canvasCenter - 20, 5);
+                // Improved word breaking for shorter text
+                const words = text.split(' ');
+                if (words.length > 1) {
+                    const mid = Math.floor(text.length / 2);
+                    let splitIndex = text.lastIndexOf(' ', mid);
+                    if (splitIndex === -1) splitIndex = mid;
+                    
+                    const line1 = text.substring(0, splitIndex).trim();
+                    const line2 = text.substring(splitIndex).trim();
+                    
+                    ctx.font = `${fontSizePx-1}px Arial`;
+                    ctx.fillText(line1, canvasCenter - 15, -fontSizePx/2);
+                    ctx.fillText(line2, canvasCenter - 15, fontSizePx/2);
+                } else {
+                    ctx.font = `${fontSizePx-1}px Arial`;
+                    ctx.fillText(text, canvasCenter - 15, 0);
+                }
             }
         } else {
             // Single-line text at y=0
-            ctx.fillText(text, canvasCenter - 20, 0);
+            // Always check for multi-word phrases, even if they technically fit
+            const words = text.split(' ');
+            if (words.length >= 2 && text.length > 8) {
+                // Always wrap multi-word phrases that are reasonably long
+                // This keeps text away from the center button
+                const line1 = words[0];
+                const line2 = words.slice(1).join(' ');
+                
+                // Use slightly smaller font for wrapped text
+                ctx.font = `${fontSizePx-1}px Arial`;
+                
+                // Draw the two lines around y=0
+                ctx.fillText(line1, canvasCenter - 15, -fontSizePx/2);
+                ctx.fillText(line2, canvasCenter - 15, fontSizePx/2);
+            } else {
+                // Single-word or very short phrases stay on one line
+                ctx.fillText(text, canvasCenter - 15, 0);
+            }
         }
         
         ctx.restore();
@@ -398,11 +453,11 @@ function highlightWinningSegment(winningIndex) {
     
     if (!segments || segments.length === 0) return;
     
-    // Draw gray border around the wheel - bigger and gray
+    // Draw black border around the wheel - KEEP THIS HERE
     ctx.beginPath();
     ctx.arc(canvasCenter, canvasCenter, canvasCenter - 5, 0, 2 * Math.PI);
-    ctx.lineWidth = 4; // Increased from 2 to 4
-    ctx.strokeStyle = '#777777'; // Changed from black to gray
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = 'black';
     ctx.stroke();
     
     // Calculate segment angle
@@ -478,8 +533,8 @@ function highlightWinningSegment(winningIndex) {
                     
                     // Draw two-line text
                     ctx.font = `${fontSizePx-1}px Arial`; // Removed "bold" and changed "monospace" to "Arial"
-                    ctx.fillText(line1, canvasCenter - 20, -fontSizePx/2);
-                    ctx.fillText(line2, canvasCenter - 20, fontSizePx);
+                    ctx.fillText(line1, canvasCenter - 15, -fontSizePx/2);
+                    ctx.fillText(line2, canvasCenter - 15, fontSizePx);
                 } 
                 else if (text.includes("no Mi")) {
                     // Split at "no Mi"
@@ -489,22 +544,77 @@ function highlightWinningSegment(winningIndex) {
                     
                     // Draw two-line text
                     ctx.font = `${fontSizePx-1}px Arial`; // Removed "bold" and changed "monospace" to "Arial"
-                    ctx.fillText(line1, canvasCenter - 20, -fontSizePx/2);
-                    if (line2) ctx.fillText(line2, canvasCenter - 20, fontSizePx);
+                    ctx.fillText(line1, canvasCenter - 15, -fontSizePx/2);
+                    if (line2) ctx.fillText(line2, canvasCenter - 15, fontSizePx);
                 }
                 else {
-                    // For other long text, just use a smaller font
-                    ctx.font = `${fontSizePx-2}px Arial`; // Removed "bold" and changed "monospace" to "Arial"
-                    ctx.fillText(text, canvasCenter - 20, 5);
+                    // For other long text, use better word breaks
+                    const words = text.split(' ');
+                    if (words.length > 1) {
+                        // Find best breaking point
+                        let line1 = '';
+                        let line2 = '';
+                        let totalLength = text.length;
+                        let currentLength = 0;
+                        
+                        for (let i = 0; i < words.length; i++) {
+                            currentLength += words[i].length + 1;
+                            if (currentLength > totalLength / 2) {
+                                line1 = words.slice(0, i).join(' ');
+                                line2 = words.slice(i).join(' ');
+                                break;
+                            }
+                        }
+                        
+                        // Draw two-line text with better spacing
+                        ctx.font = `${fontSizePx-1}px Arial`;
+                        ctx.fillText(line1, canvasCenter - 15, -fontSizePx/1.5);
+                        ctx.fillText(line2, canvasCenter - 15, fontSizePx/1.5);
+                    } else {
+                        // Single long word - just use smaller font
+                        ctx.font = `${fontSizePx-2}px Arial`;
+                        ctx.fillText(text, canvasCenter - 15, 0);
+                    }
                 }
             } else {
-                // For moderately long text, just use a smaller font
-                ctx.font = `${fontSizePx-1}px Arial`; // Removed "bold" and changed "monospace" to "Arial"
-                ctx.fillText(text, canvasCenter - 20, 5);
+                // Improved word breaking for shorter text
+                const words = text.split(' ');
+                if (words.length > 1) {
+                    const mid = Math.floor(text.length / 2);
+                    let splitIndex = text.lastIndexOf(' ', mid);
+                    if (splitIndex === -1) splitIndex = mid;
+                    
+                    const line1 = text.substring(0, splitIndex).trim();
+                    const line2 = text.substring(splitIndex).trim();
+                    
+                    ctx.font = `${fontSizePx-1}px Arial`;
+                    ctx.fillText(line1, canvasCenter - 15, -fontSizePx/2);
+                    ctx.fillText(line2, canvasCenter - 15, fontSizePx/2);
+                } else {
+                    ctx.font = `${fontSizePx-1}px Arial`;
+                    ctx.fillText(text, canvasCenter - 15, 0);
+                }
             }
         } else {
             // Single-line text at y=0
-            ctx.fillText(text, canvasCenter - 20, 0);
+            // Always check for multi-word phrases, even if they technically fit
+            const words = text.split(' ');
+            if (words.length >= 2 && text.length > 8) {
+                // Always wrap multi-word phrases that are reasonably long
+                // This keeps text away from the center button
+                const line1 = words[0];
+                const line2 = words.slice(1).join(' ');
+                
+                // Use slightly smaller font for wrapped text
+                ctx.font = `${fontSizePx-1}px Arial`;
+                
+                // Draw the two lines around y=0
+                ctx.fillText(line1, canvasCenter - 15, -fontSizePx/2);
+                ctx.fillText(line2, canvasCenter - 15, fontSizePx/2);
+            } else {
+                // Single-word or very short phrases stay on one line
+                ctx.fillText(text, canvasCenter - 15, 0);
+            }
         }
         
         ctx.restore();
@@ -1568,7 +1678,7 @@ function drawSegmentText(ctx, text, centerX, centerY, radius, startAngle, arcSiz
     ctx.restore();
 }
 
-const xPos = canvasCenter - 20;
+const xPos = canvasCenter - 15;
 ctx.textAlign = "right";
 ctx.textBaseline = "middle";  // prevent vertical jitter
 ctx.font = font;
