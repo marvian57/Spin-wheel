@@ -105,41 +105,78 @@ canvas {
     height: 100%;
 }
 
-/* Update the center circle */
+/* Premium button styling with gray outer ring */
 .center-circle {
     position: absolute;
-    width: 50px;
-    height: 50px;
-    background-color: hsl(209, 32%, 54%);
+    width: 48px;
+    height: 48px;
+    /* More subtle gradient with less bulging */
+    background: radial-gradient(circle at 40% 40%, #2a2a2a, #151515 70%, #000000);
     border-radius: 50%;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     z-index: 10;
     cursor: pointer;
-    border: 5px solid #333;
-}
-
-.center-circle:focus {
-    outline: none;
+    box-sizing: border-box;
+    border: 2px solid #000;
+    
+    /* Refined shadows with added gray outer ring */
+    box-shadow: 
+        0 2px 4px rgba(0,0,0,0.4),
+        inset 0 1px 2px rgba(255,255,255,0.1), /* Reduced depth */
+        inset 0 -1px 2px rgba(0,0,0,0.3),      /* Reduced depth */
+        /* Gray accent line */
+        0 0 0 1px rgba(120,120,120,0.5),
+        0 0 0 3px #1a1a1a,
+        /* Added subtle gray outer ring for contrast */
+        0 0 0 5px rgba(100,100,100,0.3),
+        0 0 0 6px rgba(50,50,50,0.5);
 }
 
 .center-circle:hover {
-    background-color: hsl(209, 27%, 39%);
+    /* Subtle hover effect */
+    background: radial-gradient(circle at 40% 40%, #333333, #1a1a1a 70%, #000000);
+    box-shadow: 
+        0 2px 5px rgba(0,0,0,0.5),
+        inset 0 1px 3px rgba(255,255,255,0.12), /* Reduced depth */
+        inset 0 -1px 2px rgba(0,0,0,0.4),       /* Reduced depth */
+        0 0 0 1px rgba(120,120,120,0.5),
+        0 0 0 3px #1a1a1a,
+        /* Maintained gray outer ring */
+        0 0 0 5px rgba(100,100,100,0.3),
+        0 0 0 6px rgba(50,50,50,0.5);
 }
 
-/* Arrow attached to the button */
+.center-circle:active {
+    /* Very subtle press effect - less deep */
+    transform: translate(-50%, -49.8%);         /* Less depression */
+    background: radial-gradient(circle at 40% 40%, #252525, #101010 70%, #000000);
+    box-shadow: 
+        0 1px 2px rgba(0,0,0,0.4),              /* Reduced depth */
+        inset 0 1px 3px rgba(0,0,0,0.3),        /* Reduced depth */
+        0 0 0 1px rgba(100,100,100,0.5),
+        0 0 0 3px #1a1a1a,
+        /* Maintained gray outer ring when pressed */
+        0 0 0 5px rgba(100,100,100,0.3),
+        0 0 0 6px rgba(50,50,50,0.5);
+}
+
+/* Matching arrow for premium look */
 .center-circle::after {
     content: '';
     position: absolute;
     width: 0;
     height: 0;
-    border-left: 10px solid transparent;
-    border-right: 10px solid transparent;
-    border-top: 16px solid #333;
-    bottom: -16px;
+    /* Slightly smaller, more refined arrow */
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 14px solid #1a1a1a;
+    bottom: -14px;
     left: 50%;
     transform: translateX(-50%);
+    /* Subtle shadow matches button */
+    filter: drop-shadow(0 1px 1px rgba(0,0,0,0.4));
 }
 
 /* Replace the triangle with a new pointer at the bottom */
@@ -197,8 +234,8 @@ body.spinning .wheel {
 /* Hamburger Menu */
 .hamburger-menu {
     position: fixed;
-    top: auto;
-    right: 20px;
+    top: 10px;
+    right: 50px;
     z-index: 1000;
     cursor: move;
     background: #333;

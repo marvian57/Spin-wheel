@@ -299,14 +299,14 @@ function createWheel() {
         ctx.beginPath();
         ctx.fillStyle = segColors[i];
         ctx.moveTo(canvasCenter, canvasCenter);
-        ctx.arc(canvasCenter, canvasCenter, canvasCenter - 10, i * segmentAngle, (i + 1) * segmentAngle);
+        ctx.arc(canvasCenter, canvasCenter, canvasCenter - 6, i * segmentAngle, (i + 1) * segmentAngle);
         ctx.lineTo(canvasCenter, canvasCenter);
         ctx.fill();
         
         // Draw segment border
         ctx.beginPath();
         ctx.moveTo(canvasCenter, canvasCenter);
-        ctx.arc(canvasCenter, canvasCenter, canvasCenter - 10, i * segmentAngle, (i + 1) * segmentAngle);
+        ctx.arc(canvasCenter, canvasCenter, canvasCenter - 6, i * segmentAngle, (i + 1) * segmentAngle);
         ctx.lineTo(canvasCenter, canvasCenter);
         ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
         ctx.lineWidth = 1;
@@ -322,7 +322,7 @@ function createWheel() {
         // Handle long text - EXACTLY AS IN highlightWinningSegment
         const text = segments[i];
         const maxWidth = canvasCenter - 30; // Maximum width for text
-        
+        1
         // Use text measurement to ensure text fits
         ctx.font = font;
         const textWidth = ctx.measureText(text).width;
@@ -445,7 +445,7 @@ function highlightWinningSegment(winningIndex) {
         
         // Draw the segment with exact same dimensions for all
         ctx.moveTo(canvasCenter, canvasCenter);
-        ctx.arc(canvasCenter, canvasCenter, canvasCenter - 10, i * segmentAngle, (i + 1) * segmentAngle);
+        ctx.arc(canvasCenter, canvasCenter, canvasCenter - 6, i * segmentAngle, (i + 1) * segmentAngle);
         ctx.lineTo(canvasCenter, canvasCenter);
         ctx.fill();
         
@@ -780,7 +780,7 @@ function updateSelectionsHistory() {
     // Implementation left empty in original code
 };
     
-// Add this at the start of your window.onload function
+// In your window.onload function, replace the current wheel sizing code with:
 window.onload = function() {
     // Clear all saved data
     localStorage.clear();
@@ -797,9 +797,9 @@ window.onload = function() {
     loadWheelConfig();
     createWheel();
     
-    // Set responsive wheel size based on screen size - optimized for mobile
-    const viewportWidth = Math.min(window.innerWidth, window.innerHeight);
-    const optimalSize = Math.min(300, viewportWidth * 0.7); // 70% of viewport or 300px, whichever is smaller
+    // Set smaller wheel size for TikTok (about 35% of vertical height)
+    const tiktokHeight = 1920;
+    const optimalSize = Math.min(250, window.innerHeight * 0.50); // 35% of height or 250px max
     
     // Set wheel size using CSS variables
     document.documentElement.style.setProperty('--wheel-size', optimalSize + 'px');
@@ -866,8 +866,8 @@ window.onload = function() {
 
 // Also update the resize handler accordingly
 window.addEventListener('resize', function() {
-    const viewportWidth = Math.min(window.innerWidth, window.innerHeight);
-    const optimalSize = Math.min(300, viewportWidth * 0.7);
+    // TikTok-friendly size (35% of vertical height)
+    const optimalSize = Math.min(250, window.innerHeight * 0.35);
     document.documentElement.style.setProperty('--wheel-size', optimalSize + 'px');
     createWheel(); // Redraw the wheel at new size
 });
