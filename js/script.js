@@ -105,82 +105,7 @@ const characterStats = {
     power: 0
 };
 
-// Reference tables for power calculations
-const powerValues = {
-    race: {
-        "Humans": 10,
-        "Skypeans": 15,
-        "Fishmen": 25,
-        "Giants": 40,
-        "Merfolk": 15,
-        "Mink Tribe": 30,
-        "Long Arm": 15,
-        "Long Leg": 15,
-        "Three Eye": 35,
-        "Dwarves": 10,
-        "Snakeneck": 15,
-        "Kinkobito": 15,
-        "Lunarians": 50
-    },
-    hakiType: {
-        "Observation Haki": 30,
-        "Armament Haki": 35,
-        "Conqueror's Haki": 50,
-        "Observation & Armament": 65,
-        "Observation & Conqueror's": 80,
-        "Armament & Conqueror's": 85,
-        "All Three Types": 100
-    },
-    devilFruit: {
-        "Paramecia - Gomu Gomu": 40,
-        "Paramecia - Bara Bara": 30,
-        "Paramecia - Doru Doru": 25,
-        "Paramecia - Mane Mane": 20,
-        "Paramecia - Hana Hana": 35,
-        "Paramecia - Ope Ope": 70,
-        "Logia - Mera Mera": 60,
-        "Logia - Moku Moku": 50,
-        "Logia - Suna Suna": 55,
-        "Logia - Goro Goro": 75,
-        "Logia - Hie Hie": 65,
-        "Logia - Yami Yami": 80,
-        "Zoan - Ushi Ushi": 30,
-        "Zoan - Tori Tori": 35,
-        "Zoan - Zou Zou": 40,
-        "Mythical Zoan - Phoenix": 85,
-        "Ancient Zoan - T-Rex": 70
-    },
-    fightingStyle: {
-        "Haki Combat": 50,
-        "Rokushiki": 45,
-        "Three Sword Style": 60,
-        "Fish-Man Karate": 55,
-        "Black Leg Style": 50,
-        "Swordsmanship": 45,
-        "Dragon Claw": 55,
-        "Usopp Tactics": 30,
-        "Hand-to-Hand Combat": 40,
-        "Marksmanship": 35,
-        "Weapon Specialist": 40
-    },
-    fightingIQ: {
-        "None": 0,
-        "Low": 20,
-        "Medium": 40,
-        "High": 60,
-        "Mastered": 80,
-        "Supreme Master": 90,
-        "Sliver of Truth": 100
-    },
-    occupation: {
-        "Pirate": 15,
-        "Marine": 15,
-        "Revolutionary Army": 20,
-        "World Government": 15,
-        "Civilian": 0,
-        "Noble": 5
-    }
-};
+
 
 
 
@@ -320,7 +245,7 @@ function generateColors() {
     }
 }
 
-// Update the createWheel function to add a black border
+// Update createWheel to match the text rendering from highlightWinningSegment
 function createWheel() {
     // Get the actual canvas size from CSS
     const wheelSize = parseInt(getCssVar('--wheel-size')) || 350;
@@ -358,7 +283,9 @@ function createWheel() {
     
     // Get text styling from CSS
     const textColor = getCssVar('--wheel-text-color') || 'white';
-    let fontSizePx = parseInt(getCssVar('--wheel-font-size')) || 10;
+    
+    // Calculate font size based on number of segments and text length - MATCH HIGHLIGHT FUNCTION
+    let fontSizePx = parseInt(getCssVar('--wheel-font-size')) || 10; // Get from CSS like highlightWinningSegment
     let font = `bold ${fontSizePx}px monospace`;
     
     // Apply anti-aliasing
@@ -385,16 +312,71 @@ function createWheel() {
         ctx.lineWidth = 1;
         ctx.stroke();
         
-        // Draw text
+        // Draw text - USE EXACT SAME CODE AS highlightWinningSegment
         ctx.save();
         ctx.translate(canvasCenter, canvasCenter);
         ctx.rotate(i * segmentAngle + segmentAngle / 2);
         ctx.textAlign = "right";
         ctx.fillStyle = textColor;
+        
+        // Handle long text - EXACTLY AS IN highlightWinningSegment
+        const text = segments[i];
+        const maxWidth = canvasCenter - 30; // Maximum width for text
+        
+        // Use text measurement to ensure text fits
         ctx.font = font;
-        ctx.fillText(segments[i], canvasCenter - 20, 5);
+        const textWidth = ctx.measureText(text).width;
+        
+        // If text is too long, adjust it - SAME AS highlightWinningSegment
+        if (textWidth > maxWidth) {
+            // For very long text, handle it specially
+            if (text.length > 20) {
+                if (text.includes("Model:")) {
+                    // Split at "Model:"
+                    const parts = text.split("Model:");
+                    const line1 = parts[0].trim();
+                    const line2 = "Model:" + (parts[1] || "").trim();
+                    
+                    // Draw two-line text
+                    ctx.font = `bold ${fontSizePx-1}px monospace`;
+                    ctx.fillText(line1, canvasCenter - 20, -fontSizePx/2);
+                    ctx.fillText(line2, canvasCenter - 20, fontSizePx);
+                } 
+                else if (text.includes("no Mi")) {
+                    // Split at "no Mi"
+                    const parts = text.split("no Mi");
+                    const line1 = parts[0] + "no Mi";
+                    const line2 = parts[1] ? parts[1].trim() : "";
+                    
+                    // Draw two-line text
+                    ctx.font = `bold ${fontSizePx-1}px monospace`;
+                    ctx.fillText(line1, canvasCenter - 20, -fontSizePx/2);
+                    if (line2) ctx.fillText(line2, canvasCenter - 20, fontSizePx);
+                }
+                else {
+                    // For other long text, just use a smaller font
+                    ctx.font = `bold ${fontSizePx-2}px monospace`;
+                    ctx.fillText(text, canvasCenter - 20, 5);
+                }
+            } else {
+                // For moderately long text, just use a smaller font
+                ctx.font = `bold ${fontSizePx-1}px monospace`;
+                ctx.fillText(text, canvasCenter - 20, 5);
+            }
+        } else {
+            // Normal text - draw as is
+            ctx.fillText(text, canvasCenter - 20, 5);
+        }
+        
         ctx.restore();
     }
+    
+    // Draw center circle
+    ctx.beginPath();
+    ctx.arc(canvasCenter, canvasCenter, 20, 0, 2 * Math.PI);
+    ctx.fillStyle = '#fff';
+    ctx.fill();
+    ctx.stroke();
 }
 
 // Update the highlightWinningSegment function to ensure the border is drawn
@@ -482,9 +464,55 @@ function highlightWinningSegment(winningIndex) {
             ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
         }
         
-        // Use exact same positioning for all text
+        // Handle long text
+        const text = segments[i];
+        const maxWidth = canvasCenter - 30; // Maximum width for text
+        
+        // Use text measurement to ensure text fits
         ctx.font = font;
-        ctx.fillText(segments[i], canvasCenter - 20, 5);
+        const textWidth = ctx.measureText(text).width;
+        
+        // If text is too long, adjust it
+        if (textWidth > maxWidth) {
+            // For very long text, handle it specially
+            if (text.length > 20) {
+                if (text.includes("Model:")) {
+                    // Split at "Model:"
+                    const parts = text.split("Model:");
+                    const line1 = parts[0].trim();
+                    const line2 = "Model:" + (parts[1] || "").trim();
+                    
+                    // Draw two-line text
+                    ctx.font = `bold ${fontSizePx-1}px monospace`;
+                    ctx.fillText(line1, canvasCenter - 20, -fontSizePx/2);
+                    ctx.fillText(line2, canvasCenter - 20, fontSizePx);
+                } 
+                else if (text.includes("no Mi")) {
+                    // Split at "no Mi"
+                    const parts = text.split("no Mi");
+                    const line1 = parts[0] + "no Mi";
+                    const line2 = parts[1] ? parts[1].trim() : "";
+                    
+                    // Draw two-line text
+                    ctx.font = `bold ${fontSizePx-1}px monospace`;
+                    ctx.fillText(line1, canvasCenter - 20, -fontSizePx/2);
+                    if (line2) ctx.fillText(line2, canvasCenter - 20, fontSizePx);
+                }
+                else {
+                    // For other long text, just use a smaller font
+                    ctx.font = `bold ${fontSizePx-2}px monospace`;
+                    ctx.fillText(text, canvasCenter - 20, 5);
+                }
+            } else {
+                // For moderately long text, just use a smaller font
+                ctx.font = `bold ${fontSizePx-1}px monospace`;
+                ctx.fillText(text, canvasCenter - 20, 5);
+            }
+        } else {
+            // Normal text - draw as is
+            ctx.fillText(text, canvasCenter - 20, 5);
+        }
+        
         ctx.restore();
     }
 }
@@ -985,7 +1013,13 @@ function updateSelections(category, selection, skipNext = true) {
     saveToLocalStorage();
 
     // Update power calculation after stats change
-    updatePowerDisplay();
+    if (typeof calculatePower === 'function') {
+        console.log("Calculating power after selection update");
+        calculatePower();
+    }
+    if (typeof updatePowerDisplay === 'function') {
+        updatePowerDisplay();
+    }
     
     // Skip to next category if this was a manual update and skipNext is true
     if (skipNext) {
@@ -1071,9 +1105,6 @@ function updateCharacterStat(category, newValue) {
             // If race is not human, automatically set Will of D to No
             characterStats.willOfD = "No";
             completedCategories.add("Do you have the Will of D?");
-            
-            // Call the update function to reflect this in UI
-            updateWillOfDDisplay("No");
         }
     }
 
@@ -1107,13 +1138,10 @@ function updateCharacterStat(category, newValue) {
         disableSpinButton(true);
     }
     
-    // Add these lines to update power after stat changes
-    if (typeof calculatePower === 'function') {
-        calculatePower();
-    }
-    if (typeof updatePowerDisplay === 'function') {
-        updatePowerDisplay();
-    }
+    // ADD THESE LINES to update power after stat changes
+    console.log("Calling calculatePower after stat update");
+    calculatePower();
+    updatePowerDisplay();
 }
 
 // Add special age animation
@@ -1393,4 +1421,151 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+// Replace the existing drawWheel function with this simplified version
+function drawWheel(options) {
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    const radius = Math.min(centerX, centerY) - 10;
+    
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    const numOptions = options.length;
+    const arcSize = (2 * Math.PI) / numOptions;
+    
+    // IMPORTANT: Determine font size based on segment count for ENTIRE wheel
+    // This ensures ALL segments on the same wheel use the same font size
+    let wheelFontSize;
+    if (numOptions <= 8) {
+        wheelFontSize = 14; // Few options - large font
+    } else if (numOptions <= 12) {
+        wheelFontSize = 12; // Medium number - medium font
+    } else if (numOptions <= 18) {
+        wheelFontSize = 10; // Many options - small font
+    } else {
+        wheelFontSize = 8;  // Lots of options - tiny font
+    }
+    
+    // Check if ANY text in this wheel is exceptionally long
+    const hasLongText = options.some(text => text.length > 20);
+    
+    // If ANY segment has long text, reduce font size for ALL segments
+    if (hasLongText) {
+        wheelFontSize = Math.max(6, wheelFontSize - 2);
+    }
+    
+    // Draw segments
+    for (let i = 0; i < numOptions; i++) {
+        const angle = i * arcSize;
+        
+        // Draw segment
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, radius, angle, angle + arcSize);
+        ctx.closePath();
+        
+        // Alternate colors
+        ctx.fillStyle = i % 2 === 0 ? '#FFC107' : '#FF9800';
+        ctx.fill();
+        ctx.stroke();
+        
+        // Draw text with consistent font size for all segments
+        drawSegmentText(ctx, options[i], centerX, centerY, radius, angle, arcSize, wheelFontSize);
+    }
+    
+    // Draw center circle
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, 20, 0, 2 * Math.PI);
+    ctx.fillStyle = '#fff';
+    ctx.fill();
+    ctx.stroke();
+}
 
+// Replace the existing drawSegmentText function with this properly confined version
+function drawSegmentText(ctx, text, centerX, centerY, radius, startAngle, arcSize, fontSize) {
+    // Calculate the middle angle of the segment
+    const middleAngle = startAngle + arcSize / 2;
+    
+    // Position text closer to center (40% of radius) for safety
+    const textRadius = radius * 0.4; // Move text even more inward
+    const textX = centerX + Math.cos(middleAngle) * textRadius;
+    const textY = centerY + Math.sin(middleAngle) * textRadius;
+    
+    // Save the canvas state
+    ctx.save();
+    
+    // Move to the text position
+    ctx.translate(textX, textY);
+    
+    // Rotate text appropriately (never upside-down)
+    const isBottomHalf = middleAngle > Math.PI / 2 && middleAngle < 3 * Math.PI / 2;
+    const textAngle = isBottomHalf ? (middleAngle - Math.PI / 2) : (middleAngle + Math.PI / 2);
+    ctx.rotate(textAngle);
+    
+    // Set text properties
+    ctx.fillStyle = '#000';
+    ctx.textAlign = "center"; // Center all text
+    ctx.textBaseline = "middle";
+    
+    // Much smaller font size based on number of options
+    const numOptions = 2 * Math.PI / arcSize;
+    let actualFontSize;
+    
+    if (numOptions > 25) {
+        actualFontSize = 3; // Extremely tiny for lots of options
+    } else if (numOptions > 18) {
+        actualFontSize = 4; // Very tiny for many options
+    } else if (numOptions > 12) {
+        actualFontSize = 5; // Tiny for several options
+    } else {
+        actualFontSize = 6; // Small but readable for few options
+    }
+    
+    // Set font size
+    ctx.font = `${actualFontSize}px Arial`;
+    
+    // ALWAYS split long text into multiple lines
+    if (text.length > 12) {
+        // For special formats like Zoan fruits with "Model:"
+        if (text.includes("Model:")) {
+            const parts = text.split("Model:");
+            const line1 = parts[0].trim();
+            const line2 = "Model:" + (parts[1] || "").trim();
+            
+            // Draw two lines with vertical offset
+            ctx.fillText(line1, 0, -actualFontSize);
+            ctx.fillText(line2, 0, actualFontSize);
+        }
+        // For Devil Fruits with "no Mi"
+        else if (text.includes("no Mi")) {
+            const parts = text.split("no Mi");
+            const line1 = parts[0] + "no Mi";
+            const line2 = parts[1] ? parts[1].trim() : "";
+            
+            // Draw two lines with vertical offset
+            ctx.fillText(line1, 0, -actualFontSize);
+            if (line2) ctx.fillText(line2, 0, actualFontSize);
+        }
+        // General split for long text
+        else {
+            const midPoint = Math.floor(text.length / 2);
+            let splitIndex = text.lastIndexOf(' ', midPoint);
+            if (splitIndex === -1) splitIndex = midPoint;
+            
+            const line1 = text.substring(0, splitIndex);
+            const line2 = text.substring(splitIndex + 1);
+            
+            // Draw two lines with vertical offset
+            ctx.fillText(line1, 0, -actualFontSize);
+            ctx.fillText(line2, 0, actualFontSize);
+        }
+    } else {
+        // Short text - just one line
+        ctx.fillText(text, 0, 0);
+    }
+    
+    // Restore canvas state
+    ctx.restore();
+}

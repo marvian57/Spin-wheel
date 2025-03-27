@@ -126,29 +126,125 @@
       "statKey": "hasDevilFruit"
     },
     {
-      "title": "What devil fruit?",
+      "title": "What type of devil fruit?",
       "options": [
-        "Paramecia - Gomu Gomu",
-        "Paramecia - Bara Bara",
-        "Paramecia - Doru Doru",
-        "Paramecia - Mane Mane",
-        "Paramecia - Hana Hana",
-        "Paramecia - Ope Ope",
-        "Logia - Mera Mera",
-        "Logia - Moku Moku",
-        "Logia - Suna Suna",
-        "Logia - Goro Goro",
-        "Logia - Hie Hie",
-        "Logia - Yami Yami",
-        "Zoan - Ushi Ushi",
-        "Zoan - Tori Tori",
-        "Zoan - Zou Zou",
-        "Mythical Zoan - Phoenix",
-        "Ancient Zoan - T-Rex"
+        "Logia",
+        "Paramecia",
+        "Zoan",
+        "Mythical Zoan"
       ],
       "conditional": {
         "category": "Do you have a devil fruit?",
         "value": "Yes"
+      },
+      "statKey": "devilFruitType"
+    },
+    {
+      "title": "What Logia fruit?",
+      "options": [
+        "Moku Moku no Mi (Smoke)",
+        "Mera Mera no Mi (Flame)",
+        "Suna Suna no Mi (Sand)",
+        "Goro Goro no Mi (Rumble)",
+        "Hie Hie no Mi (Ice)",
+        "Yami Yami no Mi (Dark)",
+        "Pika Pika no Mi (Glint)",
+        "Magu Magu no Mi (Magma)",
+        "Numa Numa no Mi (Swamp)",
+        "Gasu Gasu no Mi (Gas)",
+        "Ame Ame no Mi (Candy)",
+        "Toro Toro no Mi (Liquid)",
+        "Mizu Mizu no Mi (Water)"
+      ],
+      "conditional": {
+        "category": "What type of devil fruit?",
+        "value": "Logia"
+      },
+      "statKey": "devilFruit"
+    },
+    {
+      "title": "What Paramecia fruit?",
+      "options": [
+        "Bara Bara no Mi (Chop)",
+        "Supa Supa no Mi (Blade)",
+        "Bomu Bomu no Mi (Bomb)",
+        "Hana Hana no Mi (Flower)",
+        "Doru Doru no Mi (Wax)",
+        "Baku Baku no Mi (Munch)",
+        "Mane Mane no Mi (Clone)",
+        "Sube Sube no Mi (Slip)",
+        "Kilo Kilo no Mi (Weight)",
+        "Toge Toge no Mi (Spike)",
+        "Ori Ori no Mi (Cage)",
+        "Bane Bane no Mi (Spring)",
+        "Noro Noro no Mi (Slow)",
+        "Doa Doa no Mi (Door)",
+        "Awa Awa no Mi (Bubble)",
+        "Suke Suke no Mi (Clear)",
+        "Nikyu Nikyu no Mi (Paw)",
+        "Mero Mero no Mi (Love)",
+        "Shiro Shiro no Mi (Castle)",
+        "Bisu Bisu no Mi (Biscuit)",
+        "Wara Wara no Mi (Straw)",
+        "Nui Nui no Mi (Stitch)",
+        "Beta Beta no Mi (Sticky)",
+        "Buki Buki no Mi (Arms)",
+        "Guru Guru no Mi (Spin)",
+        "Hoya Hoya no Mi (Barrier)",
+        "Gomu Gomu no Mi (Rubber)",
+        "Ope Ope no Mi (Op)",
+        "Gura Gura no Mi (Tremor)",
+        "Soru Soru no Mi (Soul)",
+        "Mochi Mochi no Mi (Mochi)"
+      ],
+      "conditional": {
+        "category": "What type of devil fruit?",
+        "value": "Paramecia"
+      },
+      "statKey": "devilFruit"
+    },
+    {
+      "title": "What Zoan fruit?",
+      "options": [
+        "Ushi Ushi no Mi, Model: Bison",
+        "Tori Tori no Mi, Model: Falcon",
+        "Inu Inu no Mi, Model: Dachshund",
+        "Neko Neko no Mi, Model: Leopard",
+        "Mogu Mogu no Mi",
+        "Uma Uma no Mi",
+        "Zou Zou no Mi",
+        "Hebi Hebi no Mi, Model: Anaconda",
+        "Hebi Hebi no Mi, Model: King Cobra",
+        "Saru Saru no Mi",
+        "Ryu Ryu no Mi, Model: Allosaurus",
+        "Ryu Ryu no Mi, Model: Spinosaurus",
+        "Ryu Ryu no Mi, Model: Pteranodon",
+        "Ryu Ryu no Mi, Model: Brachiosaurus",
+        "Ryu Ryu no Mi, Model: Triceratops",
+        "Kumo Kumo no Mi, Model: Scorpion",
+        "Mushi Mushi no Mi, Model: Kabutomushi",
+        "Inu Inu no Mi, Model: Wolf"
+      ],
+      "conditional": {
+        "category": "What type of devil fruit?",
+        "value": "Zoan"
+      },
+      "statKey": "devilFruit"
+    },
+    {
+      "title": "What Mythical Zoan fruit?",
+      "options": [
+        "Hito Hito no Mi, Model: Daibutsu",
+        "Tori Tori no Mi, Model: Phoenix",
+        "Uo Uo no Mi, Model: Seiryu",
+        "Inu Inu no Mi, Model: Kyubi no Kitsune",
+        "Inu Inu no Mi, Model: Okuchi no Makami",
+        "Hito Hito no Mi, Model: Nika",
+        "Hebi Hebi no Mi, Model: Yamata no Orochi"
+      ],
+      "conditional": {
+        "category": "What type of devil fruit?",
+        "value": "Mythical Zoan"
       },
       "statKey": "devilFruit"
     },
@@ -165,7 +261,8 @@
         "Usopp Tactics",
         "Hand-to-Hand Combat",
         "Marksmanship",
-        "Weapon Specialist"
+        "Weapon Specialist",
+        "Devil Fruit Mastery"
       ],
       "statKey": "fightingStyle"
     },

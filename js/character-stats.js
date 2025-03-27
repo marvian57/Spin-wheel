@@ -1,74 +1,85 @@
+// Reference tables for power calculations
+const powerValues = {
+    race: {
+        "Humans": 10,
+        "Skypeans": 15,
+        "Fishmen": 25,
+        "Giants": 40,
+        "Merfolk": 15,
+        "Mink Tribe": 30,
+        "Long Arm": 15,
+        "Long Leg": 15,
+        "Three Eye": 35,
+        "Dwarves": 10,
+        "Snakeneck": 15,
+        "Kinkobito": 15,
+        "Lunarians": 50
+    },
+    hakiType: {
+        "Observation Haki": 30,
+        "Armament Haki": 35,
+        "Conqueror's Haki": 50,
+        "Observation & Armament": 65,
+        "Observation & Conqueror's": 80,
+        "Armament & Conqueror's": 85,
+        "All Three Types": 100
+    },
+    devilFruit: {
+        "Paramecia - Gomu Gomu": 40,
+        "Paramecia - Bara Bara": 30,
+        "Paramecia - Doru Doru": 25,
+        "Paramecia - Mane Mane": 20,
+        "Paramecia - Hana Hana": 35,
+        "Paramecia - Ope Ope": 70,
+        "Logia - Mera Mera": 60,
+        "Logia - Moku Moku": 50,
+        "Logia - Suna Suna": 55,
+        "Logia - Goro Goro": 75,
+        "Logia - Hie Hie": 65,
+        "Logia - Yami Yami": 80,
+        "Zoan - Ushi Ushi": 30,
+        "Zoan - Tori Tori": 35,
+        "Zoan - Zou Zou": 40,
+        "Mythical Zoan - Phoenix": 85,
+        "Ancient Zoan - T-Rex": 70
+    },
+    fightingStyle: {
+        "Haki Combat": 50,
+        "Rokushiki": 45,
+        "Three Sword Style": 60,
+        "Fish-Man Karate": 55,
+        "Black Leg Style": 50,
+        "Swordsmanship": 45,
+        "Dragon Claw": 55,
+        "Usopp Tactics": 30,
+        "Hand-to-Hand Combat": 40,
+        "Marksmanship": 35,
+        "Weapon Specialist": 40
+    },
+    fightingIQ: {
+        "None": 0,
+        "Low": 20,
+        "Medium": 40,
+        "High": 60,
+        "Mastered": 80,
+        "Supreme Master": 90,
+        "Sliver of Truth": 100
+    },
+    occupation: {
+        "Pirate": 15,
+        "Marine": 15,
+        "Revolutionary Army": 20,
+        "World Government": 15,
+        "Civilian": 0,
+        "Noble": 5
+    }
+};
+
 // Check if powerValues exists at the top of the file
 console.log("At start of character-stats.js, powerValues:", typeof powerValues !== 'undefined' ? 'exists' : 'missing');
 
-// Add this function to define default power values if they're missing
-function ensurePowerValues() {
-    // If powerValues doesn't exist, define it
-    if (typeof powerValues === 'undefined') {
-        console.log("powerValues missing, creating default values");
-        window.powerValues = {
-            race: {
-                "Humans": 100,
-                "Mink Tribe": 120,
-                "Giants": 150,
-                "Fishmen": 130,
-                "Merfolk": 80,
-                "Lunarians": 200,
-                "Sky People": 90,
-                "Long Arm": 110,
-                "Long Leg": 110,
-                "Three-Eye": 140,
-                "Tontatta": 50,
-                "Snake Neck": 100
-            },
-            hakiType: {
-                "Observation Haki": 200,
-                "Armament Haki": 220,
-                "Conqueror's Haki": 300,
-                "All Three Types": 500
-            },
-            devilFruit: {
-                "Paramecia": 200,
-                "Logia": 300,
-                "Zoan": 250,
-                "Ancient Zoan": 300,
-                "Mythical Zoan": 350
-            },
-            fightingStyle: {
-                "Black Leg Style": 150,
-                "Three Sword Style": 200,
-                "Six Powers": 180,
-                "Fish-Man Karate": 170,
-                "Devil Fruit Mastery": 220,
-                "Usopp Tactics": 100
-            },
-            fightingIQ: {
-                "Low": 50,
-                "Average": 100,
-                "High": 150,
-                "Genius": 250
-            },
-            occupation: {
-                "Pirate": 100,
-                "Marine": 100,
-                "Revolutionary Army": 120,
-                "Bounty Hunter": 80,
-                "Civilian": 0,
-                "World Government": 90
-            }
-        };
-    }
-}
-
 // Calculate power based on character stats
 function calculatePower() {
-    // Make sure powerValues is defined
-    ensurePowerValues();
-    
-    // Log character stats for debugging
-    console.log("Calculating power with characterStats:", characterStats);
-    console.log("Using powerValues:", powerValues);
-    
     // Get stats values for calculation
     const race = characterStats.race;
     const hakiType = characterStats.hakiType;
@@ -88,7 +99,13 @@ function calculatePower() {
     // Get power values from the powerValues object
     let raceValue = (race && powerValues.race[race]) ? powerValues.race[race] : 0;
     let hakiValue = (hakiType && characterStats.hasHaki === "Yes" && powerValues.hakiType[hakiType]) ? powerValues.hakiType[hakiType] : 0;
-    let devilFruitValue = (hasDevilFruit && devilFruit && powerValues.devilFruit[devilFruit]) ? powerValues.devilFruit[devilFruit] : 0;
+    
+    // Devil fruit handling
+    let devilFruitValue = 0;
+    if (hasDevilFruit && devilFruit) {
+        devilFruitValue = powerValues.devilFruit[devilFruit] || 0;
+    }
+    
     let fightingStyleValue = (fightingStyle && powerValues.fightingStyle[fightingStyle]) ? powerValues.fightingStyle[fightingStyle] : 0;
     let fightingIQValue = (fightingIQ && powerValues.fightingIQ[fightingIQ]) ? powerValues.fightingIQ[fightingIQ] : 0;
     let occupationValue = (occupation && powerValues.occupation[occupation]) ? powerValues.occupation[occupation] : 0;
@@ -98,7 +115,7 @@ function calculatePower() {
         raceValue += 25;
     }
     
-    // Log individual components and their exact lookup paths
+    // Log individual components
     console.log("Power values lookup:", {
         raceLookup: `powerValues.race["${race}"] = ${powerValues.race[race]}`,
         hakiLookup: `powerValues.hakiType["${hakiType}"] = ${powerValues.hakiType[hakiType]}`,
@@ -144,7 +161,7 @@ function calculatePower() {
     // Log final calculation
     console.log("Final power calculated:", Math.round(power));
     
-    // Store in character stats and return
+    // MOST IMPORTANT LINE: Store in character stats
     characterStats.power = Math.round(power);
     return Math.round(power);
 }
@@ -168,8 +185,41 @@ function updatePowerDisplay() {
     powerDisplay.innerHTML = `
         <h3>Power Level: ${power}</h3>
         <div class="power-meter">
-            <div class="power-fill" style="width: ${Math.min(100, power/30)}%"></div>
+            <div class="power-fill" style="width: ${Math.min(100, power/10)}%"></div>
         </div>
     `;
 }
+
+// Special function to update Will of D display when race changes
+function updateWillOfDDisplay(value) {
+    const selectionsList = document.getElementById('selections-list');
+    const willOfDItem = Array.from(selectionsList.children).find(
+        item => item.dataset.category === "Do you have the Will of D?"
+    );
+    
+    if (willOfDItem) {
+        const selectElement = willOfDItem.querySelector('select');
+        if (selectElement) {
+            for (let i = 0; i < selectElement.options.length; i++) {
+                if (selectElement.options[i].value === value) {
+                    selectElement.selectedIndex = i;
+                    break;
+                }
+            }
+        }
+    }
+}
+
+// Add this at the very end of your file
+console.log("Character-stats.js fully loaded, attempting initial power calculation");
+calculatePower();
+updatePowerDisplay();
+
+// Create a global debug function
+window.debugCharacterPower = function() {
+    console.log("Debug triggered - recalculating power");
+    console.log("Current character stats:", characterStats);
+    calculatePower();
+    updatePowerDisplay();
+};
 
