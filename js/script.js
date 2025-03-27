@@ -104,11 +104,6 @@ const characterStats = {
     age: null,
     power: 0
 };
-
-
-
-
-
 // Load wheel configuration from textarea
 function loadWheelConfig() {
     try {
@@ -129,7 +124,6 @@ function loadWheelConfig() {
         console.error("Error loading wheel configuration:", error);
     }
 }
-
 // Replace your existing loadCategory function with this corrected version
 function loadCategory(index) {
     if (!wheelConfig || !wheelConfig.categories || index >= wheelConfig.categories.length) {
@@ -138,7 +132,6 @@ function loadCategory(index) {
     
     const category = wheelConfig.categories[index];
     console.log(`Loading category: ${category.title}`);
-    
     // Check if this category has a condition
     if (category.conditional) {
         const dependsOn = category.conditional.category;
@@ -176,9 +169,9 @@ function loadCategory(index) {
         
         console.log(`✅ Condition MET for ${category.title}, showing this category`);
     }
-    
     // Load the category
     document.getElementById('category-title').textContent = category.title;
+    document.getElementById('category-title').style.color = "#fdefec"; // White title
     segments = category.options;
     
     // Generate colors
@@ -219,6 +212,7 @@ function updateSelectionDisplay() {
     // Update the selection display
     if (currentIndex >= 0 && currentIndex < segments.length) {
         selection.textContent = segments[currentIndex];
+        selection.style.color = "#fdefec"; // SELECTION COLOR
     }
 }
 
@@ -272,11 +266,11 @@ function createWheel() {
     // Adjusted center point (using CSS size, not scaled canvas size)
     canvasCenter = wheelSize / 2;
     
-    // Draw black border around the wheel
+    // Draw gray border around the wheel - bigger and gray
     ctx.beginPath();
     ctx.arc(canvasCenter, canvasCenter, canvasCenter - 5, 0, 2 * Math.PI);
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = 'black';
+    ctx.lineWidth = 4; // Increased from 2 to 4
+    ctx.strokeStyle = '#777777'; // Changed from black to gray
     ctx.stroke();
     
     let segmentAngle = (2 * Math.PI) / segments.length;
@@ -404,11 +398,11 @@ function highlightWinningSegment(winningIndex) {
     
     if (!segments || segments.length === 0) return;
     
-    // Draw black border around the wheel - KEEP THIS HERE
+    // Draw gray border around the wheel - bigger and gray
     ctx.beginPath();
     ctx.arc(canvasCenter, canvasCenter, canvasCenter - 5, 0, 2 * Math.PI);
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = 'black';
+    ctx.lineWidth = 4; // Increased from 2 to 4
+    ctx.strokeStyle = '#777777'; // Changed from black to gray
     ctx.stroke();
     
     // Calculate segment angle
@@ -1574,7 +1568,6 @@ function drawSegmentText(ctx, text, centerX, centerY, radius, startAngle, arcSiz
     ctx.restore();
 }
 
-// Replace your long-text check with this unified code:
 const xPos = canvasCenter - 20;
 ctx.textAlign = "right";
 ctx.textBaseline = "middle";  // prevent vertical jitter
@@ -1604,3 +1597,111 @@ if (textWidth > maxWidth) {
     // Single-line text at y=0
     ctx.fillText(text, xPos, 0);
 }
+
+// Store the original size
+let originalWheelSize = null;
+
+// Update the window.onload function:
+window.onload = function() {
+    // Clear all saved data
+    localStorage.clear();
+    
+    // Reset global variables
+    currentCategoryIndex = 0;
+    selections = [];
+    completedCategories = new Set();
+    wheelProcessing = false;
+    isSpinning = false;
+    deg = 0;
+    
+    // Load fresh wheel configuration
+    loadWheelConfig();
+    createWheel();
+    
+    // Set smaller wheel size for TikTok (about 35% of vertical height)
+    const tiktokHeight = 1920;
+    const optimalSize = Math.min(250, window.innerHeight * 0.50); // 35% of height or 250px max
+    
+    // Store this size as the original size - BEFORE inspector opens
+    originalWheelSize = optimalSize;
+    
+    // Set wheel size using CSS variables
+    document.documentElement.style.setProperty('--wheel-size', optimalSize + 'px');
+    
+    // Rest of the onload code remains the same...
+    loadWheelConfig();
+    loadSavedSelections(); // Load saved selections after config
+    
+    // Add event listener to update selection display when canvas is touched/clicked
+    canvas.addEventListener('click', function(e) {
+        if (!isSpinning) {
+            updateSelectionDisplay();
+        }
+    });
+    
+    // Update selection display initially
+    updateSelectionDisplay();
+    
+    // Preload sounds with correct paths
+    try {
+        tickSound.load();
+        selectSound.load();
+        
+        // Debug paths
+        console.log("Base URL:", window.location.href);
+        console.log("Attempted tick sound path:", new URL('./sounds/tick.mp3', window.location.href).href);
+    } catch (e) {
+        console.error("Sound loading error:", e);
+    }
+    
+    // Handle browser autoplay restrictions
+    document.addEventListener('click', function() {
+        // Try with different path formats to handle the 404
+        const paths = ['./sounds/tick.mp3', '../sounds/tick.mp3', 'sounds/tick.mp3', '/sounds/tick.mp3'];
+        let unlockSound = null;
+        
+        for (let path of paths) {
+            try {
+                unlockSound = new Audio(path);
+                unlockSound.volume = 0;
+                unlockSound.play().then(() => {
+                    unlockSound.pause();
+                    unlockSound.currentTime = 0;
+                    console.log("Sound unlocked successfully with path:", path);
+                    // Update main sound paths if this one worked
+                    tickSound.src = path;
+                    selectSound.src = path.replace('tick.mp3', 'select.mp3');
+                }).catch(e => console.log("Audio unlock failed with path:", path));
+                break;
+            } catch (e) {
+                console.log("Failed to create audio with path:", path);
+            }
+        }
+    }, {once: true});
+    
+    // Handle window resize for responsiveness
+    window.addEventListener('resize', function() {
+        const viewportWidth = Math.min(window.innerWidth, window.innerHeight);
+        const optimalSize = Math.min(300, viewportWidth * 0.7);
+        document.documentElement.style.setProperty('--wheel-size', optimalSize + 'px');
+        createWheel(); // Redraw the wheel at new size
+    });
+};
+
+// Replace the resize handler completely:
+window.addEventListener('resize', function() {
+    // Only update wheel size if this is a genuine resize
+    // (window.innerWidth change > 100px from last genuine resize)
+    // This prevents inspector-triggered "fake" resizes
+    
+    // If we have no original size yet, set it
+    if (!originalWheelSize) {
+        originalWheelSize = Math.min(250, window.innerHeight * 0.40);
+    }
+    
+    // Always use the stored original size
+    document.documentElement.style.setProperty('--wheel-size', originalWheelSize + 'px');
+    
+    // Redraw the wheel at consistent size
+    createWheel();
+});

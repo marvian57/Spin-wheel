@@ -29,13 +29,12 @@
 
 /* Mobile-friendly adjustments */
 body {
-    background-color: hsl(0, 6%, 35%);
-    caret-color: transparent; /* Removes blinking text cursor */
+    background-color: hsl(0, 3%, 6%);
+    caret-color: transparent; 
     color: white;
     font-family: Arial, sans-serif;
     max-width: 100vw;
     overflow-x: hidden;
-    /* Center content for recording */
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -94,6 +93,7 @@ body {
     width: var(--wheel-size);
     height: var(--wheel-size);
     margin: 0 auto 20px auto;
+    transform: translateY(40px);
 }
 
 canvas {
@@ -105,83 +105,75 @@ canvas {
     height: 100%;
 }
 
-/* Premium button styling with gray outer ring */
+/* Button (higher z-index) */
 .center-circle {
     position: absolute;
     width: 48px;
     height: 48px;
-    /* More subtle gradient with less bulging */
     background: radial-gradient(circle at 40% 40%, #2a2a2a, #151515 70%, #000000);
     border-radius: 50%;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    z-index: 10;
+    z-index: 10; /* Higher than pointer */
     cursor: pointer;
     box-sizing: border-box;
     border: 2px solid #000;
-    
-    /* Refined shadows with added gray outer ring */
     box-shadow: 
         0 2px 4px rgba(0,0,0,0.4),
-        inset 0 1px 2px rgba(255,255,255,0.1), /* Reduced depth */
-        inset 0 -1px 2px rgba(0,0,0,0.3),      /* Reduced depth */
-        /* Gray accent line */
-        0 0 0 1px rgba(120,120,120,0.5),
-        0 0 0 3px #1a1a1a,
-        /* Added subtle gray outer ring for contrast */
-        0 0 0 5px rgba(100,100,100,0.3),
-        0 0 0 6px rgba(50,50,50,0.5);
+        inset 0 1px 2px rgba(255,255,255,0.1),
+        inset 0 -1px 2px rgba(0,0,0,0.3),
+        inset 0 0 0 1px rgba(100,100,100,0.5);
 }
 
 .center-circle:hover {
-    /* Subtle hover effect */
     background: radial-gradient(circle at 40% 40%, #333333, #1a1a1a 70%, #000000);
-    box-shadow: 
-        0 2px 5px rgba(0,0,0,0.5),
-        inset 0 1px 3px rgba(255,255,255,0.12), /* Reduced depth */
-        inset 0 -1px 2px rgba(0,0,0,0.4),       /* Reduced depth */
-        0 0 0 1px rgba(120,120,120,0.5),
-        0 0 0 3px #1a1a1a,
-        /* Maintained gray outer ring */
-        0 0 0 5px rgba(100,100,100,0.3),
-        0 0 0 6px rgba(50,50,50,0.5);
 }
 
 .center-circle:active {
-    /* Very subtle press effect - less deep */
-    transform: translate(-50%, -49.8%);         /* Less depression */
-    background: radial-gradient(circle at 40% 40%, #252525, #101010 70%, #000000);
-    box-shadow: 
-        0 1px 2px rgba(0,0,0,0.4),              /* Reduced depth */
-        inset 0 1px 3px rgba(0,0,0,0.3),        /* Reduced depth */
-        0 0 0 1px rgba(100,100,100,0.5),
-        0 0 0 3px #1a1a1a,
-        /* Maintained gray outer ring when pressed */
-        0 0 0 5px rgba(100,100,100,0.3),
-        0 0 0 6px rgba(50,50,50,0.5);
+    /* Very subtle press effect */
+    transform: translate(-50%, -49.9%);
+    background: radial-gradient(circle at 40% 40%, #222222, #101010 70%, #000000);
 }
 
-/* Matching arrow for premium look */
+/* Remove the after pseudo-element arrow */
 .center-circle::after {
-    content: '';
+    display: none;
+}
+
+/* Remove the shine since it won't be visible behind the button */
+.center-circle::before {
+    display: none;
+}
+
+/* Pointer (lower z-index but extended to be visible) */
+.pointer {
+    display: block;
     position: absolute;
     width: 0;
     height: 0;
-    /* Slightly smaller, more refined arrow */
-    border-left: 8px solid transparent;
-    border-right: 8px solid transparent;
-    border-top: 14px solid #1a1a1a;
-    bottom: -14px;
+    border-left: 16px solid transparent;
+    border-right: 16px solid transparent;
+    border-top: 38px solid #1a1a1a; /* Much taller to extend beyond button */
+    top: 50%;
     left: 50%;
-    transform: translateX(-50%);
-    /* Subtle shadow matches button */
-    filter: drop-shadow(0 1px 1px rgba(0,0,0,0.4));
+    transform: translate(-50%, -15px); /* Move up to be partially behind button */
+    z-index: 5; /* Lower than button */
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));
 }
 
-/* Replace the triangle with a new pointer at the bottom */
-.pointer {
-    display: none; /* Hide the separate pointer */
+/* Create a new arrow element that's behind the button */
+.arrow-behind {
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-left: 25px solid transparent;
+    border-right: 25px solid transparent;
+    border-top: 35px solid #1a1a1a;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, 0);
+    z-index: 5; /* Lower z-index than button (10) */
 }
 
 .inputArea {
