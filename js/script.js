@@ -333,6 +333,7 @@ function createWheel() {
                     
                     // Draw two-line text
                     ctx.font = `${fontSizePx-1}px Arial`; // Removed "bold" and changed "monospace" to "Arial"
+                    ctx.textRendering = "geometricPrecision"; // Add this for sharper text
                     ctx.fillText(line1, canvasCenter - 15, -fontSizePx/2);
                     ctx.fillText(line2, canvasCenter - 15, fontSizePx);
                 } 
@@ -344,6 +345,7 @@ function createWheel() {
                     
                     // Draw two-line text
                     ctx.font = `${fontSizePx-1}px Arial`; // Removed "bold" and changed "monospace" to "Arial"
+                    ctx.textRendering = "geometricPrecision"; // Add this for sharper text
                     ctx.fillText(line1, canvasCenter - 15, -fontSizePx/2);
                     if (line2) ctx.fillText(line2, canvasCenter - 15, fontSizePx);
                 }
@@ -368,11 +370,13 @@ function createWheel() {
                         
                         // Draw two-line text with better spacing
                         ctx.font = `${fontSizePx-1}px Arial`;
+                        ctx.textRendering = "geometricPrecision"; // Add this for sharper text
                         ctx.fillText(line1, canvasCenter - 15, -fontSizePx/1.5);
                         ctx.fillText(line2, canvasCenter - 15, fontSizePx/1.5);
                     } else {
                         // Single long word - just use smaller font
                         ctx.font = `${fontSizePx-2}px Arial`;
+                        ctx.textRendering = "geometricPrecision"; // Add this for sharper text
                         ctx.fillText(text, canvasCenter - 15, 0);
                     }
                 }
@@ -388,31 +392,61 @@ function createWheel() {
                     const line2 = text.substring(splitIndex).trim();
                     
                     ctx.font = `${fontSizePx-1}px Arial`;
+                    ctx.textRendering = "geometricPrecision"; // Add this for sharper text
                     ctx.fillText(line1, canvasCenter - 15, -fontSizePx/2);
                     ctx.fillText(line2, canvasCenter - 15, fontSizePx/2);
                 } else {
                     ctx.font = `${fontSizePx-1}px Arial`;
+                    ctx.textRendering = "geometricPrecision"; // Add this for sharper text
                     ctx.fillText(text, canvasCenter - 15, 0);
                 }
             }
         } else {
             // Single-line text at y=0
-            // Always check for multi-word phrases, even if they technically fit
+            // Always check for multi-word phrases
             const words = text.split(' ');
-            if (words.length >= 2 && text.length > 8) {
-                // Always wrap multi-word phrases that are reasonably long
-                // This keeps text away from the center button
-                const line1 = words[0];
-                const line2 = words.slice(1).join(' ');
-                
-                // Use slightly smaller font for wrapped text
-                ctx.font = `${fontSizePx-1}px Arial`;
-                
-                // Draw the two lines around y=0
-                ctx.fillText(line1, canvasCenter - 15, -fontSizePx/2);
-                ctx.fillText(line2, canvasCenter - 15, fontSizePx/2);
+            // Force wrap for any multi-word phrases with & or with certain text
+            const forceWrap = (words.length >= 2) && 
+                              (text.includes('&') || 
+                               text === "Observation Haki" || 
+                               text === "North Blue" ||
+                               text === "Calm Belt" ||
+                               text === "Observation & Armament" ||  // Add this specific case
+                               text.length > 8);
+                               
+            if (forceWrap) {
+                // For items with &, split at the &
+                if (text.includes('&')) {
+                    const parts = text.split('&');
+                    const line1 = parts[0].trim();
+                    const line2 = '&' + parts[1].trim();
+                    
+                    // Use consistent font for wrapped text
+                    ctx.font = `${fontSizePx-1}px Arial`;
+                    ctx.textRendering = "geometricPrecision"; // Add this for sharper text
+                    
+                    // Draw the two lines around y=0
+                    ctx.fillText(line1, canvasCenter - 15, -fontSizePx/2);
+                    ctx.fillText(line2, canvasCenter - 15, fontSizePx/2);
+                }
+                else {
+                    // For other multi-word entries, split after first word
+                    const line1 = words[0];
+                    const line2 = words.slice(1).join(' ');
+                    
+                    // Use consistent font for wrapped text
+                    ctx.font = `${fontSizePx-1}px Arial`;
+                    ctx.textRendering = "geometricPrecision"; // Add this for sharper text
+                    
+                    // Draw the two lines around y=0
+                    ctx.fillText(line1, canvasCenter - 15, -fontSizePx/2);
+                    ctx.fillText(line2, canvasCenter - 15, fontSizePx/2);
+                }
             } else {
                 // Single-word or very short phrases stay on one line
+                // Ensure consistent font rendering with uniform weight
+                ctx.font = `${fontSizePx} Arial`;
+                ctx.textRendering = "geometricPrecision"; // Add this for sharper text
                 ctx.fillText(text, canvasCenter - 15, 0);
             }
         }
@@ -533,6 +567,7 @@ function highlightWinningSegment(winningIndex) {
                     
                     // Draw two-line text
                     ctx.font = `${fontSizePx-1}px Arial`; // Removed "bold" and changed "monospace" to "Arial"
+                    ctx.textRendering = "geometricPrecision"; // Add this for sharper text
                     ctx.fillText(line1, canvasCenter - 15, -fontSizePx/2);
                     ctx.fillText(line2, canvasCenter - 15, fontSizePx);
                 } 
@@ -544,6 +579,7 @@ function highlightWinningSegment(winningIndex) {
                     
                     // Draw two-line text
                     ctx.font = `${fontSizePx-1}px Arial`; // Removed "bold" and changed "monospace" to "Arial"
+                    ctx.textRendering = "geometricPrecision"; // Add this for sharper text
                     ctx.fillText(line1, canvasCenter - 15, -fontSizePx/2);
                     if (line2) ctx.fillText(line2, canvasCenter - 15, fontSizePx);
                 }
@@ -568,11 +604,13 @@ function highlightWinningSegment(winningIndex) {
                         
                         // Draw two-line text with better spacing
                         ctx.font = `${fontSizePx-1}px Arial`;
+                        ctx.textRendering = "geometricPrecision"; // Add this for sharper text
                         ctx.fillText(line1, canvasCenter - 15, -fontSizePx/1.5);
                         ctx.fillText(line2, canvasCenter - 15, fontSizePx/1.5);
                     } else {
                         // Single long word - just use smaller font
                         ctx.font = `${fontSizePx-2}px Arial`;
+                        ctx.textRendering = "geometricPrecision"; // Add this for sharper text
                         ctx.fillText(text, canvasCenter - 15, 0);
                     }
                 }
@@ -588,31 +626,61 @@ function highlightWinningSegment(winningIndex) {
                     const line2 = text.substring(splitIndex).trim();
                     
                     ctx.font = `${fontSizePx-1}px Arial`;
+                    ctx.textRendering = "geometricPrecision"; // Add this for sharper text
                     ctx.fillText(line1, canvasCenter - 15, -fontSizePx/2);
                     ctx.fillText(line2, canvasCenter - 15, fontSizePx/2);
                 } else {
                     ctx.font = `${fontSizePx-1}px Arial`;
+                    ctx.textRendering = "geometricPrecision"; // Add this for sharper text
                     ctx.fillText(text, canvasCenter - 15, 0);
                 }
             }
         } else {
             // Single-line text at y=0
-            // Always check for multi-word phrases, even if they technically fit
+            // Always check for multi-word phrases
             const words = text.split(' ');
-            if (words.length >= 2 && text.length > 8) {
-                // Always wrap multi-word phrases that are reasonably long
-                // This keeps text away from the center button
-                const line1 = words[0];
-                const line2 = words.slice(1).join(' ');
-                
-                // Use slightly smaller font for wrapped text
-                ctx.font = `${fontSizePx-1}px Arial`;
-                
-                // Draw the two lines around y=0
-                ctx.fillText(line1, canvasCenter - 15, -fontSizePx/2);
-                ctx.fillText(line2, canvasCenter - 15, fontSizePx/2);
+            // Force wrap for any multi-word phrases with & or with certain text
+            const forceWrap = (words.length >= 2) && 
+                              (text.includes('&') || 
+                               text === "Observation Haki" || 
+                               text === "North Blue" ||
+                               text === "Calm Belt" ||
+                               text === "Observation & Armament" ||  // Add this specific case
+                               text.length > 8);
+                               
+            if (forceWrap) {
+                // For items with &, split at the &
+                if (text.includes('&')) {
+                    const parts = text.split('&');
+                    const line1 = parts[0].trim();
+                    const line2 = '&' + parts[1].trim();
+                    
+                    // Use consistent font for wrapped text
+                    ctx.font = `${fontSizePx-1}px Arial`;
+                    ctx.textRendering = "geometricPrecision"; // Add this for sharper text
+                    
+                    // Draw the two lines around y=0
+                    ctx.fillText(line1, canvasCenter - 15, -fontSizePx/2);
+                    ctx.fillText(line2, canvasCenter - 15, fontSizePx/2);
+                }
+                else {
+                    // For other multi-word entries, split after first word
+                    const line1 = words[0];
+                    const line2 = words.slice(1).join(' ');
+                    
+                    // Use consistent font for wrapped text
+                    ctx.font = `${fontSizePx-1}px Arial`;
+                    ctx.textRendering = "geometricPrecision"; // Add this for sharper text
+                    
+                    // Draw the two lines around y=0
+                    ctx.fillText(line1, canvasCenter - 15, -fontSizePx/2);
+                    ctx.fillText(line2, canvasCenter - 15, fontSizePx/2);
+                }
             } else {
                 // Single-word or very short phrases stay on one line
+                // Ensure consistent font rendering with uniform weight
+                ctx.font = `${fontSizePx} Arial`;
+                ctx.textRendering = "geometricPrecision"; // Add this for sharper text
                 ctx.fillText(text, canvasCenter - 15, 0);
             }
         }
@@ -1698,6 +1766,7 @@ if (textWidth > maxWidth) {
     
     // Slightly smaller font for two lines
     ctx.font = `${fontSizePx - 1}px Arial`; // Removed "bold" and changed "monospace" to "Arial"
+    ctx.textRendering = "geometricPrecision"; // Add this for sharper text
 
     // Draw the two lines around y=0
     const halfLine = (fontSizePx - 1) / 2;
