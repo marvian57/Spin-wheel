@@ -364,8 +364,8 @@ function createWheel() {
                 ctx.fillText(text, canvasCenter - 20, 5);
             }
         } else {
-            // Normal text - draw as is
-            ctx.fillText(text, canvasCenter - 20, 5);
+            // Single-line text at y=0
+            ctx.fillText(text, canvasCenter - 20, 0);
         }
         
         ctx.restore();
@@ -509,8 +509,8 @@ function highlightWinningSegment(winningIndex) {
                 ctx.fillText(text, canvasCenter - 20, 5);
             }
         } else {
-            // Normal text - draw as is
-            ctx.fillText(text, canvasCenter - 20, 5);
+            // Single-line text at y=0
+            ctx.fillText(text, canvasCenter - 20, 0);
         }
         
         ctx.restore();
@@ -1568,4 +1568,35 @@ function drawSegmentText(ctx, text, centerX, centerY, radius, startAngle, arcSiz
     
     // Restore canvas state
     ctx.restore();
+}
+
+// Replace your long-text check with this unified code:
+const xPos = canvasCenter - 20;
+ctx.textAlign = "right";
+ctx.textBaseline = "middle";  // prevent vertical jitter
+ctx.font = font;
+
+const text = segments[i];
+const textWidth = ctx.measureText(text).width;
+const maxWidth = canvasCenter - 30; // same logic
+
+if (textWidth > maxWidth) {
+    // Two-line fallback
+    const mid = Math.floor(text.length / 2);
+    let spaceIndex = text.lastIndexOf(' ', mid);
+    if (spaceIndex === -1) spaceIndex = mid;
+    
+    const line1 = text.substring(0, spaceIndex).trimEnd();
+    const line2 = text.substring(spaceIndex).trimStart();
+    
+    // Slightly smaller font for two lines
+    ctx.font = `bold ${fontSizePx - 1}px monospace`;
+
+    // Draw the two lines around y=0
+    const halfLine = (fontSizePx - 1) / 2;
+    ctx.fillText(line1, xPos, -halfLine);
+    ctx.fillText(line2, xPos, +halfLine);
+} else {
+    // Single-line text at y=0
+    ctx.fillText(text, xPos, 0);
 }
