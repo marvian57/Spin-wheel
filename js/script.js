@@ -410,23 +410,43 @@ function createWheel() {
                                text === "Observation Haki" || 
                                text === "North Blue" ||
                                text === "Calm Belt" ||
-                               text === "Observation & Armament" ||  // Add this specific case
+                               text === "Observation & Armament" ||  
+                               text.startsWith("Observation") ||  // Add this line to catch ALL Observation text
                                text.length > 8);
                                
             if (forceWrap) {
-                // For items with &, split at the &
-                if (text.includes('&')) {
-                    const parts = text.split('&');
-                    const line1 = parts[0].trim();
-                    const line2 = '&' + parts[1].trim();
+                // For items with Observation, always split after that word
+                if (text.startsWith("Observation")) {
+                    const line1 = "Observation";
+                    const line2 = text.substring(11).trim(); // 11 is length of "Observation"
                     
-                    // Use consistent font for wrapped text
                     ctx.font = `${fontSizePx}px Arial`;
-                    ctx.textRendering = "geometricPrecision"; // Add this for sharper text
-                    
-                    // Draw the two lines around y=0
-                    ctx.fillText(line1, canvasCenter - 15, -6); // Fixed pixel value instead of variable
-                    ctx.fillText(line2, canvasCenter - 15, 6);  // Fixed pixel value instead of variable
+                    ctx.textRendering = "geometricPrecision";
+                    ctx.fillText(line1, canvasCenter - 15, -6);
+                    ctx.fillText(line2, canvasCenter - 15, 6);
+                }
+                // For items with &, split at the &
+                else if (text.includes('&')) {
+                    // Always split Observation & Armament properly
+                    if (text === "Observation & Armament") {
+                        const line1 = "Observation";
+                        const line2 = "& Armament";
+                        
+                        ctx.font = `${fontSizePx}px Arial`;
+                        ctx.textRendering = "geometricPrecision";
+                        ctx.fillText(line1, canvasCenter - 15, -6);
+                        ctx.fillText(line2, canvasCenter - 15, 6);
+                    } else {
+                        // Better handling for all other & cases
+                        const ampIndex = text.indexOf('&');
+                        const line1 = text.substring(0, ampIndex).trim();
+                        const line2 = text.substring(ampIndex).trim();
+                        
+                        ctx.font = `${fontSizePx}px Arial`;
+                        ctx.textRendering = "geometricPrecision";
+                        ctx.fillText(line1, canvasCenter - 15, -6);
+                        ctx.fillText(line2, canvasCenter - 15, 6);
+                    }
                 }
                 else {
                     // For other multi-word entries, split after first word
@@ -643,23 +663,43 @@ function highlightWinningSegment(winningIndex) {
                                text === "Observation Haki" || 
                                text === "North Blue" ||
                                text === "Calm Belt" ||
-                               text === "Observation & Armament" ||  // Add this specific case
+                               text === "Observation & Armament" ||  
+                               text.startsWith("Observation") ||  // Add this line to catch ALL Observation text
                                text.length > 8);
                                
             if (forceWrap) {
-                // For items with &, split at the &
-                if (text.includes('&')) {
-                    const parts = text.split('&');
-                    const line1 = parts[0].trim();
-                    const line2 = '&' + parts[1].trim();
+                // For items with Observation, always split after that word
+                if (text.startsWith("Observation")) {
+                    const line1 = "Observation";
+                    const line2 = text.substring(11).trim(); // 11 is length of "Observation"
                     
-                    // Use consistent font for wrapped text
                     ctx.font = `${fontSizePx}px Arial`;
-                    ctx.textRendering = "geometricPrecision"; // Add this for sharper text
-                    
-                    // Draw the two lines around y=0
-                    ctx.fillText(line1, canvasCenter - 15, -6); // Fixed pixel value instead of variable
-                    ctx.fillText(line2, canvasCenter - 15, 6);  // Fixed pixel value instead of variable
+                    ctx.textRendering = "geometricPrecision";
+                    ctx.fillText(line1, canvasCenter - 15, -6);
+                    ctx.fillText(line2, canvasCenter - 15, 6);
+                }
+                // For items with &, split at the &
+                else if (text.includes('&')) {
+                    // Always split Observation & Armament properly
+                    if (text === "Observation & Armament") {
+                        const line1 = "Observation";
+                        const line2 = "& Armament";
+                        
+                        ctx.font = `${fontSizePx}px Arial`;
+                        ctx.textRendering = "geometricPrecision";
+                        ctx.fillText(line1, canvasCenter - 15, -6);
+                        ctx.fillText(line2, canvasCenter - 15, 6);
+                    } else {
+                        // Better handling for all other & cases
+                        const ampIndex = text.indexOf('&');
+                        const line1 = text.substring(0, ampIndex).trim();
+                        const line2 = text.substring(ampIndex).trim();
+                        
+                        ctx.font = `${fontSizePx}px Arial`;
+                        ctx.textRendering = "geometricPrecision";
+                        ctx.fillText(line1, canvasCenter - 15, -6);
+                        ctx.fillText(line2, canvasCenter - 15, 6);
+                    }
                 }
                 else {
                     // For other multi-word entries, split after first word
