@@ -284,8 +284,7 @@ function createWheel() {
     
     // Apply anti-aliasing
     ctx.textBaseline = 'middle';
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
+    ctx.imageSmoothingEnabled = false; // Disable anti-aliasing
     
     // Draw each segment
     for (let i = 0; i < segments.length; i++) {
@@ -318,7 +317,7 @@ function createWheel() {
         const maxWidth = canvasCenter - 30; // Maximum width for text
         1
         // Use text measurement to ensure text fits
-        ctx.font = font;
+        ctx.font = `${fontSizePx}px Arial`;
         const textWidth = ctx.measureText(text).width;
         
         // If text is too long, adjust it - SAME AS highlightWinningSegment
@@ -332,10 +331,10 @@ function createWheel() {
                     const line2 = "Model:" + (parts[1] || "").trim();
                     
                     // Draw two-line text
-                    ctx.font = `${fontSizePx-1}px Arial`; // Removed "bold" and changed "monospace" to "Arial"
+                    ctx.font = `${fontSizePx}px Arial`; // Removed "bold" and changed "monospace" to "Arial"
                     ctx.textRendering = "geometricPrecision"; // Add this for sharper text
-                    ctx.fillText(line1, canvasCenter - 15, -fontSizePx/2);
-                    ctx.fillText(line2, canvasCenter - 15, fontSizePx);
+                    ctx.fillText(line1, canvasCenter - 15, -6); // Fixed pixel value instead of variable
+                    ctx.fillText(line2, canvasCenter - 15, 6);  // Fixed pixel value instead of variable
                 } 
                 else if (text.includes("no Mi")) {
                     // Split at "no Mi"
@@ -344,10 +343,10 @@ function createWheel() {
                     const line2 = parts[1] ? parts[1].trim() : "";
                     
                     // Draw two-line text
-                    ctx.font = `${fontSizePx-1}px Arial`; // Removed "bold" and changed "monospace" to "Arial"
+                    ctx.font = `${fontSizePx}px Arial`; // Removed "bold" and changed "monospace" to "Arial"
                     ctx.textRendering = "geometricPrecision"; // Add this for sharper text
-                    ctx.fillText(line1, canvasCenter - 15, -fontSizePx/2);
-                    if (line2) ctx.fillText(line2, canvasCenter - 15, fontSizePx);
+                    ctx.fillText(line1, canvasCenter - 15, -6); // Fixed pixel value instead of variable
+                    if (line2) ctx.fillText(line2, canvasCenter - 15, 6);  // Fixed pixel value instead of variable
                 }
                 else {
                     // For other long text, use better word breaks
@@ -369,15 +368,15 @@ function createWheel() {
                         }
                         
                         // Draw two-line text with better spacing
-                        ctx.font = `${fontSizePx-1}px Arial`;
+                        ctx.font = `${fontSizePx}px Arial`;
                         ctx.textRendering = "geometricPrecision"; // Add this for sharper text
-                        ctx.fillText(line1, canvasCenter - 15, -fontSizePx/1.5);
-                        ctx.fillText(line2, canvasCenter - 15, fontSizePx/1.5);
+                        ctx.fillText(line1, canvasCenter - 15, -6); // Fixed pixel value instead of variable
+                        ctx.fillText(line2, canvasCenter - 15, 6);  // Fixed pixel value instead of variable
                     } else {
                         // Single long word - just use smaller font
-                        ctx.font = `${fontSizePx-2}px Arial`;
+                        ctx.font = `${fontSizePx}px Arial`;
                         ctx.textRendering = "geometricPrecision"; // Add this for sharper text
-                        ctx.fillText(text, canvasCenter - 15, 0);
+                        ctx.fillText(text, canvasCenter - 15, 0); // Always at y=0
                     }
                 }
             } else {
@@ -391,14 +390,14 @@ function createWheel() {
                     const line1 = text.substring(0, splitIndex).trim();
                     const line2 = text.substring(splitIndex).trim();
                     
-                    ctx.font = `${fontSizePx-1}px Arial`;
+                    ctx.font = `${fontSizePx}px Arial`;
                     ctx.textRendering = "geometricPrecision"; // Add this for sharper text
-                    ctx.fillText(line1, canvasCenter - 15, -fontSizePx/2);
-                    ctx.fillText(line2, canvasCenter - 15, fontSizePx/2);
+                    ctx.fillText(line1, canvasCenter - 15, -6); // Fixed pixel value instead of variable
+                    ctx.fillText(line2, canvasCenter - 15, 6);  // Fixed pixel value instead of variable
                 } else {
-                    ctx.font = `${fontSizePx-1}px Arial`;
+                    ctx.font = `${fontSizePx}px Arial`;
                     ctx.textRendering = "geometricPrecision"; // Add this for sharper text
-                    ctx.fillText(text, canvasCenter - 15, 0);
+                    ctx.fillText(text, canvasCenter - 15, 0); // Always at y=0
                 }
             }
         } else {
@@ -422,12 +421,12 @@ function createWheel() {
                     const line2 = '&' + parts[1].trim();
                     
                     // Use consistent font for wrapped text
-                    ctx.font = `${fontSizePx-1}px Arial`;
+                    ctx.font = `${fontSizePx}px Arial`;
                     ctx.textRendering = "geometricPrecision"; // Add this for sharper text
                     
                     // Draw the two lines around y=0
-                    ctx.fillText(line1, canvasCenter - 15, -fontSizePx/2);
-                    ctx.fillText(line2, canvasCenter - 15, fontSizePx/2);
+                    ctx.fillText(line1, canvasCenter - 15, -6); // Fixed pixel value instead of variable
+                    ctx.fillText(line2, canvasCenter - 15, 6);  // Fixed pixel value instead of variable
                 }
                 else {
                     // For other multi-word entries, split after first word
@@ -435,19 +434,19 @@ function createWheel() {
                     const line2 = words.slice(1).join(' ');
                     
                     // Use consistent font for wrapped text
-                    ctx.font = `${fontSizePx-1}px Arial`;
+                    ctx.font = `${fontSizePx}px Arial`;
                     ctx.textRendering = "geometricPrecision"; // Add this for sharper text
                     
                     // Draw the two lines around y=0
-                    ctx.fillText(line1, canvasCenter - 15, -fontSizePx/2);
-                    ctx.fillText(line2, canvasCenter - 15, fontSizePx/2);
+                    ctx.fillText(line1, canvasCenter - 15, -6); // Fixed pixel value instead of variable
+                    ctx.fillText(line2, canvasCenter - 15, 6);  // Fixed pixel value instead of variable
                 }
             } else {
                 // Single-word or very short phrases stay on one line
                 // Ensure consistent font rendering with uniform weight
-                ctx.font = `${fontSizePx} Arial`;
+                ctx.font = `${fontSizePx}px Arial`;
                 ctx.textRendering = "geometricPrecision"; // Add this for sharper text
-                ctx.fillText(text, canvasCenter - 15, 0);
+                ctx.fillText(text, canvasCenter - 15, 0); // Always at y=0
             }
         }
         
@@ -504,8 +503,7 @@ function highlightWinningSegment(winningIndex) {
     
     // Apply anti-aliasing
     ctx.textBaseline = 'middle';
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
+    ctx.imageSmoothingEnabled = false; // Disable anti-aliasing
     
     // Draw each segment
     for (let i = 0; i < segments.length; i++) {
@@ -552,7 +550,7 @@ function highlightWinningSegment(winningIndex) {
         const maxWidth = canvasCenter - 30; // Maximum width for text
         
         // Use text measurement to ensure text fits
-        ctx.font = font;
+        ctx.font = `${fontSizePx}px Arial`;
         const textWidth = ctx.measureText(text).width;
         
         // If text is too long, adjust it
@@ -566,10 +564,10 @@ function highlightWinningSegment(winningIndex) {
                     const line2 = "Model:" + (parts[1] || "").trim();
                     
                     // Draw two-line text
-                    ctx.font = `${fontSizePx-1}px Arial`; // Removed "bold" and changed "monospace" to "Arial"
+                    ctx.font = `${fontSizePx}px Arial`; // Removed "bold" and changed "monospace" to "Arial"
                     ctx.textRendering = "geometricPrecision"; // Add this for sharper text
-                    ctx.fillText(line1, canvasCenter - 15, -fontSizePx/2);
-                    ctx.fillText(line2, canvasCenter - 15, fontSizePx);
+                    ctx.fillText(line1, canvasCenter - 15, -6); // Fixed pixel value instead of variable
+                    ctx.fillText(line2, canvasCenter - 15, 6);  // Fixed pixel value instead of variable
                 } 
                 else if (text.includes("no Mi")) {
                     // Split at "no Mi"
@@ -578,10 +576,10 @@ function highlightWinningSegment(winningIndex) {
                     const line2 = parts[1] ? parts[1].trim() : "";
                     
                     // Draw two-line text
-                    ctx.font = `${fontSizePx-1}px Arial`; // Removed "bold" and changed "monospace" to "Arial"
+                    ctx.font = `${fontSizePx}px Arial`; // Removed "bold" and changed "monospace" to "Arial"
                     ctx.textRendering = "geometricPrecision"; // Add this for sharper text
-                    ctx.fillText(line1, canvasCenter - 15, -fontSizePx/2);
-                    if (line2) ctx.fillText(line2, canvasCenter - 15, fontSizePx);
+                    ctx.fillText(line1, canvasCenter - 15, -6); // Fixed pixel value instead of variable
+                    if (line2) ctx.fillText(line2, canvasCenter - 15, 6);  // Fixed pixel value instead of variable
                 }
                 else {
                     // For other long text, use better word breaks
@@ -603,15 +601,15 @@ function highlightWinningSegment(winningIndex) {
                         }
                         
                         // Draw two-line text with better spacing
-                        ctx.font = `${fontSizePx-1}px Arial`;
+                        ctx.font = `${fontSizePx}px Arial`;
                         ctx.textRendering = "geometricPrecision"; // Add this for sharper text
-                        ctx.fillText(line1, canvasCenter - 15, -fontSizePx/1.5);
-                        ctx.fillText(line2, canvasCenter - 15, fontSizePx/1.5);
+                        ctx.fillText(line1, canvasCenter - 15, -6); // Fixed pixel value instead of variable
+                        ctx.fillText(line2, canvasCenter - 15, 6);  // Fixed pixel value instead of variable
                     } else {
                         // Single long word - just use smaller font
-                        ctx.font = `${fontSizePx-2}px Arial`;
+                        ctx.font = `${fontSizePx}px Arial`;
                         ctx.textRendering = "geometricPrecision"; // Add this for sharper text
-                        ctx.fillText(text, canvasCenter - 15, 0);
+                        ctx.fillText(text, canvasCenter - 15, 0); // Always at y=0
                     }
                 }
             } else {
@@ -625,14 +623,14 @@ function highlightWinningSegment(winningIndex) {
                     const line1 = text.substring(0, splitIndex).trim();
                     const line2 = text.substring(splitIndex).trim();
                     
-                    ctx.font = `${fontSizePx-1}px Arial`;
+                    ctx.font = `${fontSizePx}px Arial`;
                     ctx.textRendering = "geometricPrecision"; // Add this for sharper text
-                    ctx.fillText(line1, canvasCenter - 15, -fontSizePx/2);
-                    ctx.fillText(line2, canvasCenter - 15, fontSizePx/2);
+                    ctx.fillText(line1, canvasCenter - 15, -6); // Fixed pixel value instead of variable
+                    ctx.fillText(line2, canvasCenter - 15, 6);  // Fixed pixel value instead of variable
                 } else {
-                    ctx.font = `${fontSizePx-1}px Arial`;
+                    ctx.font = `${fontSizePx}px Arial`;
                     ctx.textRendering = "geometricPrecision"; // Add this for sharper text
-                    ctx.fillText(text, canvasCenter - 15, 0);
+                    ctx.fillText(text, canvasCenter - 15, 0); // Always at y=0
                 }
             }
         } else {
@@ -656,12 +654,12 @@ function highlightWinningSegment(winningIndex) {
                     const line2 = '&' + parts[1].trim();
                     
                     // Use consistent font for wrapped text
-                    ctx.font = `${fontSizePx-1}px Arial`;
+                    ctx.font = `${fontSizePx}px Arial`;
                     ctx.textRendering = "geometricPrecision"; // Add this for sharper text
                     
                     // Draw the two lines around y=0
-                    ctx.fillText(line1, canvasCenter - 15, -fontSizePx/2);
-                    ctx.fillText(line2, canvasCenter - 15, fontSizePx/2);
+                    ctx.fillText(line1, canvasCenter - 15, -6); // Fixed pixel value instead of variable
+                    ctx.fillText(line2, canvasCenter - 15, 6);  // Fixed pixel value instead of variable
                 }
                 else {
                     // For other multi-word entries, split after first word
@@ -669,19 +667,19 @@ function highlightWinningSegment(winningIndex) {
                     const line2 = words.slice(1).join(' ');
                     
                     // Use consistent font for wrapped text
-                    ctx.font = `${fontSizePx-1}px Arial`;
+                    ctx.font = `${fontSizePx}px Arial`;
                     ctx.textRendering = "geometricPrecision"; // Add this for sharper text
                     
                     // Draw the two lines around y=0
-                    ctx.fillText(line1, canvasCenter - 15, -fontSizePx/2);
-                    ctx.fillText(line2, canvasCenter - 15, fontSizePx/2);
+                    ctx.fillText(line1, canvasCenter - 15, -6); // Fixed pixel value instead of variable
+                    ctx.fillText(line2, canvasCenter - 15, 6);  // Fixed pixel value instead of variable
                 }
             } else {
                 // Single-word or very short phrases stay on one line
                 // Ensure consistent font rendering with uniform weight
-                ctx.font = `${fontSizePx} Arial`;
+                ctx.font = `${fontSizePx}px Arial`;
                 ctx.textRendering = "geometricPrecision"; // Add this for sharper text
-                ctx.fillText(text, canvasCenter - 15, 0);
+                ctx.fillText(text, canvasCenter - 15, 0); // Always at y=0
             }
         }
         
@@ -1749,7 +1747,7 @@ function drawSegmentText(ctx, text, centerX, centerY, radius, startAngle, arcSiz
 const xPos = canvasCenter - 15;
 ctx.textAlign = "right";
 ctx.textBaseline = "middle";  // prevent vertical jitter
-ctx.font = font;
+ctx.font = `${fontSizePx}px Arial`;
 
 const text = segments[i];
 const textWidth = ctx.measureText(text).width;
@@ -1765,7 +1763,7 @@ if (textWidth > maxWidth) {
     const line2 = text.substring(spaceIndex).trimStart();
     
     // Slightly smaller font for two lines
-    ctx.font = `${fontSizePx - 1}px Arial`; // Removed "bold" and changed "monospace" to "Arial"
+    ctx.font = `${fontSizePx}px Arial`; // Removed "bold" and changed "monospace" to "Arial"
     ctx.textRendering = "geometricPrecision"; // Add this for sharper text
 
     // Draw the two lines around y=0
